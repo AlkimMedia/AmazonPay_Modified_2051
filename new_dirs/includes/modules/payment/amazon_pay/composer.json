@@ -1,0 +1,5 @@
+{
+    "require": {
+        "amzn/amazon-pay-api-sdk-php": "^2.1"
+    }
+}
