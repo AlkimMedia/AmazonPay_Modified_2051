@@ -2,9 +2,17 @@
 use AlkimAmazonPay\ConfigHelper;require __DIR__ . '/includes/application_top.php';
 require_once DIR_FS_CATALOG . 'includes/modules/payment/amazon_pay/amazon_pay.php';
 $configHelper = new ConfigHelper();
-if (isset($_POST["action"])) {
 
-    switch ($_POST["action"]) {
+if(isset($_POST['action'])){
+    $action = $_POST['action'];
+}elseif(isset($_GET['action'])){
+    $action = $_GET['action'];
+}else{
+    $action = null;
+}
+
+if ($action) {
+    switch ($action) {
         case 'save_amazon_pay_configuration':
             foreach (array_map('trim', $_POST["configuration"]) as $k => $v) {
                 if ($configHelper->getConfigurationValue($k) === null) {
@@ -15,12 +23,13 @@ if (isset($_POST["action"])) {
             }
             xtc_redirect(xtc_href_link('amazon_pay_configuration.php'));
             break;
-        case 'reset_keys':
+        case 'reset_key':
             $configHelper->resetKey();
             xtc_redirect(xtc_href_link('amazon_pay_configuration.php'));
             break;
     }
 }
+
 require (DIR_WS_INCLUDES.'head.php');
 ?>
 </head>
