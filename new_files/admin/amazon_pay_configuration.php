@@ -2,7 +2,6 @@
 use AlkimAmazonPay\ConfigHelper;require __DIR__ . '/includes/application_top.php';
 require_once DIR_FS_CATALOG . 'includes/modules/payment/amazon_pay/amazon_pay.php';
 $configHelper = new ConfigHelper();
-
 if(isset($_POST['action'])){
     $action = $_POST['action'];
 }elseif(isset($_GET['action'])){
@@ -10,8 +9,8 @@ if(isset($_POST['action'])){
 }else{
     $action = null;
 }
-
 if ($action) {
+
     switch ($action) {
         case 'save_amazon_pay_configuration':
             foreach (array_map('trim', $_POST["configuration"]) as $k => $v) {
@@ -29,9 +28,18 @@ if ($action) {
             break;
     }
 }
-
 require (DIR_WS_INCLUDES.'head.php');
 ?>
+    <style>
+        .alert{
+            padding:5px;
+            margin:5px 0;
+        }
+        .alert-error{
+            background: #f59090;
+            border:2px solid red;
+        }
+    </style>
 </head>
 <body>
 <!-- header //-->
@@ -48,7 +56,15 @@ require (DIR_WS_INCLUDES.'head.php');
         </td>
         <!-- body_text //-->
         <td valign="top" class="amzConfWr">
-
+            <?php
+            if(!is_writable($configHelper->getPrivateKeyPath()) || !is_writable($configHelper->getPublicKeyPath()) || !is_writable(dirname($configHelper->getPublicKeyPath()))){
+                ?>
+                    <div class="alert alert-error main">
+                        Die Schreibrechte f&uuml;r das Schl&uuml;sselverzeichnis unter <?php echo dirname($configHelper->getPublicKeyPath());?> sind nicht ausreichend. Bitte setzen Sie die Rechte so, dass der Webserver auf das Verzeichnis und die beinhalteten Dateien vollen Zugriff hat.
+                    </div>
+                <?php
+            }
+            ?>
             <?php echo xtc_draw_form('configuration', 'amazon_pay_configuration.php'); ?>
                 <input type="hidden" name="action" value="save_amazon_pay_configuration"/>
                 <table width="100%" border="0" cellspacing="0" cellpadding="8" class="configurationTable main">
