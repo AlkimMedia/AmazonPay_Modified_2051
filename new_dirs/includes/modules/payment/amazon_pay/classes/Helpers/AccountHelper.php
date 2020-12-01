@@ -94,7 +94,7 @@ class AccountHelper
             if(ACCOUNT_DOB == 'true' && (empty($r['customers_dob']) || date('Y', strtotime($r['customers_dob'])) < 1900)){
                 return false;
             }
-            if(strlen($r['customers_telephone']) < ENTRY_TELEPHONE_MIN_LENGTH){
+            if(strlen($r['customers_telephone']) < ENTRY_TELEPHONE_MIN_LENGTH && !(defined('ACCOUNT_TELEPHONE_OPTIONAL') && ACCOUNT_TELEPHONE_OPTIONAL === 'true')){
                 return false;
             }
             return true;
