@@ -39,6 +39,22 @@ require (DIR_WS_INCLUDES.'head.php');
             background: #f59090;
             border:2px solid red;
         }
+        
+        .amz-heading{
+            background:#680f0e;
+            color:#fff;
+            padding:10px;
+            font-size:1.2em;
+            font-weight:bold;
+        }
+
+        #amz-config-table td{
+            border:none !important;
+        }
+
+        #amz-config-table tr:nth-child(2n + 1) td{
+            background:#f4f4f4;
+        }
     </style>
 </head>
 <body>
@@ -67,35 +83,43 @@ require (DIR_WS_INCLUDES.'head.php');
             ?>
             <?php echo xtc_draw_form('configuration', 'amazon_pay_configuration.php'); ?>
                 <input type="hidden" name="action" value="save_amazon_pay_configuration"/>
-                <table width="100%" border="0" cellspacing="0" cellpadding="8" class="configurationTable main">
+                <table width="100%" border="0" cellspacing="0" cellpadding="8" class="configurationTable main" id="amz-config-table">
                     <?php
                     $configHelper = new ConfigHelper();
                     foreach ($configHelper->getConfigurationFields() as $field => $fieldInfo) {
-                        ?>
-                        <tr>
-                            <td class="dataTableContent"><b><?php echo constant($field . '_TITLE'); ?></b></td>
-                            <td class="dataTableContent"><?php
-                                switch ($fieldInfo['type']) {
-                                    case ConfigHelper::FIELD_TYPE_STRING:
-                                        echo renderInputField($field);
-                                        break;
-                                    case ConfigHelper::FIELD_TYPE_SELECT:
-                                        echo renderSelectField($field, $fieldInfo['options']);
-                                        break;
-                                    case ConfigHelper::FIELD_TYPE_BOOL:
-                                        echo renderSelectField($field, [['text' => 'ja', 'id' => 'True'], ['text' => 'nein', 'id' => 'False']]);
-                                        break;
-                                    case ConfigHelper::FIELD_TYPE_READ_ONLY:
-                                        echo $fieldInfo['value'];
-                                        break;
-                                    case ConfigHelper::FIELD_TYPE_STATUS:
-                                        echo renderStatusSelectField($field, $fieldInfo['options']);
-                                        break;
-                                }
-                                ?></td>
-                            <td class="dataTableContent"><?php echo defined($field . '_DESC') ? constant($field . '_DESC') : ''; ?></td>
-                        </tr>
-                        <?php
+                        if($fieldInfo['type'] === ConfigHelper::FIELD_TYPE_HEADING){
+                            ?>
+                            <tr>
+                                <td style="padding:0;" colspan="3"><div class="amz-heading"><?php echo constant($field . '_TITLE'); ?></div></td>
+                            </tr>
+                            <?php
+                        }else{
+                            ?>
+                            <tr>
+                                <td class="dataTableContent"><b><?php echo constant($field . '_TITLE'); ?></b></td>
+                                <td class="dataTableContent"><?php
+                                    switch ($fieldInfo['type']) {
+                                        case ConfigHelper::FIELD_TYPE_STRING:
+                                            echo renderInputField($field);
+                                            break;
+                                        case ConfigHelper::FIELD_TYPE_SELECT:
+                                            echo renderSelectField($field, $fieldInfo['options']);
+                                            break;
+                                        case ConfigHelper::FIELD_TYPE_BOOL:
+                                            echo renderSelectField($field, [['text' => 'ja', 'id' => 'True'], ['text' => 'nein', 'id' => 'False']]);
+                                            break;
+                                        case ConfigHelper::FIELD_TYPE_READ_ONLY:
+                                            echo $fieldInfo['value'];
+                                            break;
+                                        case ConfigHelper::FIELD_TYPE_STATUS:
+                                            echo renderStatusSelectField($field, $fieldInfo['options']);
+                                            break;
+                                    }
+                                    ?></td>
+                                <td class="dataTableContent"><?php echo defined($field . '_DESC') ? constant($field . '_DESC') : ''; ?></td>
+                            </tr>
+                            <?php
+                        }
                     }
                     /*
                     ?>

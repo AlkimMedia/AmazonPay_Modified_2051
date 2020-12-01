@@ -30,6 +30,11 @@ $texts = [
     'APC_ORDER_STATUS_CAPTURED_TITLE'=>'Status f&uuml;r Bestellungen mit eingezogener Zahlung',
     'APC_CAPTURE_MODE_TITLE'=>'Art des Zahlungseinzugs',
     'APC_ORDER_STATUS_SHIPPED_TITLE'=>'Status f&uuml;r versendete Bestellungen',
+    
+    'HEADING_CREDENTIALS_TITLE'=>'Amazon Pay Konto',
+    'HEADING_GENERAL_TITLE'=>'Allgemeine Einstellungen',
+    'HEADING_STYLE_TITLE'=>'Design Einstellungen',
+
 
     //shop
     'TEXT_AMAZON_PAY_ERROR'=>'Ihre Zahlung war nicht erfolgreich. Bitte verwenden Sie eine andere Zahlungsart',
