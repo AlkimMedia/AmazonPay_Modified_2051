@@ -11,6 +11,7 @@ class ConfigHelper
     const FIELD_TYPE_BOOL = 'bool';
     const FIELD_TYPE_READ_ONLY = 'read_only';
     const FIELD_TYPE_STATUS = 'status';
+    const FIELD_TYPE_HEADING = 'heading';
 
     /**
      * @var \AlkimAmazonPay\Config
@@ -90,6 +91,9 @@ class ConfigHelper
     public function getConfigurationFields()
     {
         return [
+            'HEADING_CREDENTIALS'=>[
+                'type'  => static::FIELD_TYPE_HEADING,
+            ],
             'APC_MERCHANT_ID'                      => [
                 'type' => static::FIELD_TYPE_STRING
             ],
@@ -109,10 +113,10 @@ class ConfigHelper
                 'type'  => static::FIELD_TYPE_READ_ONLY,
                 'value' => HTTPS_CATALOG_SERVER . DIR_WS_CATALOG . 'callback/amazon_pay/ipn.php'
             ],
-            'AMZ_JS_ORIGIN'                        => [
-                'type'  => static::FIELD_TYPE_READ_ONLY,
-                'value' => HTTPS_CATALOG_SERVER
+            'HEADING_GENERAL'=>[
+                'type'  => static::FIELD_TYPE_HEADING,
             ],
+
             'MODULE_PAYMENT_AMAZON_PAY_STATUS'     => [
                 'type' => static::FIELD_TYPE_BOOL,
             ],
@@ -131,22 +135,6 @@ class ConfigHelper
             ],
             'MODULE_PAYMENT_AMAZON_PAY_ALLOWED'    => [
                 'type' => static::FIELD_TYPE_STRING,
-            ],
-            'APC_CHECKOUT_BUTTON_COLOR'            => [
-                'type'    => static::FIELD_TYPE_SELECT,
-                'options' => [
-                    ['text' => 'Gold', 'id' => 'Gold'],
-                    ['text' => 'LightGray', 'id' => 'LightGray'],
-                    ['text' => 'DarkGray', 'id' => 'DarkGray']
-                ]
-            ],
-            'APC_LOGIN_BUTTON_COLOR'               => [
-                'type'    => static::FIELD_TYPE_SELECT,
-                'options' => [
-                    ['text' => 'Gold', 'id' => 'Gold'],
-                    ['text' => 'LightGray', 'id' => 'LightGray'],
-                    ['text' => 'DarkGray', 'id' => 'DarkGray']
-                ]
             ],
             'APC_ORDER_STATUS_AUTHORIZED'          => [
                 'type' => static::FIELD_TYPE_STATUS,
@@ -168,6 +156,26 @@ class ConfigHelper
             'APC_ORDER_STATUS_SHIPPED'             => [
                 'type' => static::FIELD_TYPE_STATUS,
             ],
+            'HEADING_STYLE'=>[
+                'type'  => static::FIELD_TYPE_HEADING,
+            ],
+
+            'APC_CHECKOUT_BUTTON_COLOR'            => [
+                'type'    => static::FIELD_TYPE_SELECT,
+                'options' => [
+                    ['text' => 'Gold', 'id' => 'Gold'],
+                    ['text' => 'LightGray', 'id' => 'LightGray'],
+                    ['text' => 'DarkGray', 'id' => 'DarkGray']
+                ]
+            ],
+            'APC_LOGIN_BUTTON_COLOR'               => [
+                'type'    => static::FIELD_TYPE_SELECT,
+                'options' => [
+                    ['text' => 'Gold', 'id' => 'Gold'],
+                    ['text' => 'LightGray', 'id' => 'LightGray'],
+                    ['text' => 'DarkGray', 'id' => 'DarkGray']
+                ]
+            ]
         ];
     }
 
