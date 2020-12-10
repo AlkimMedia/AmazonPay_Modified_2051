@@ -406,6 +406,7 @@
             if (is_array($payload)) {
                 $payload = json_encode($payload);
             }
+
             // stripcslashes function is used on payload to unescape sequences like http:\/\/ to http://
             // and \"hello\" to "hello"
             $hashedButtonRequest = self::AMAZON_SIGNATURE_ALGORITHM . "\n" . $this->hexAndHash(stripcslashes($payload));

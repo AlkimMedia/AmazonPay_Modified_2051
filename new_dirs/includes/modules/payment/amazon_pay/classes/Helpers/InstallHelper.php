@@ -9,7 +9,7 @@ class InstallHelper
         $configHelper = new ConfigHelper();
         $migrationHelper = new MigrationHelper();
         foreach($configHelper->getConfigurationFields() as $field=>$fieldInfo){
-            if($fieldInfo['type'] !== ConfigHelper::FIELD_TYPE_READ_ONLY) {
+            if(!in_array($fieldInfo['type'], [ConfigHelper::FIELD_TYPE_READ_ONLY, ConfigHelper::FIELD_TYPE_HEADING])) {
                 if ($configHelper->getConfigurationValue($field) === null) {
                     $value = $migrationHelper->getLegacyValue($field);
                     if ($value === null) {
