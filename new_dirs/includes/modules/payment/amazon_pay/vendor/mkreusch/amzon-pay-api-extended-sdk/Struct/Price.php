@@ -22,13 +22,13 @@ class Price extends StructBase
     }
 
     /**
-     * @param string $amount
+     * @param string|float $amount
      *
      * @return Price
      */
     public function setAmount($amount)
     {
-        $this->amount = $amount;
+        $this->amount = number_format(round($amount, 2), 2, '.', '');
 
         return $this;
     }
