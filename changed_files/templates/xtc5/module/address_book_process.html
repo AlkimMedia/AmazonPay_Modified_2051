@@ -1,0 +1,28 @@
+{config_load file="$language/lang_$language.conf" section="address_book_process"}
+<h1>{#heading_address#}</h1>
+
+{* BOF Amazon Pay Checkout *}
+{if $smarty.get.amazon_pay_error}
+<tr>
+    <td class="main" valign="top">
+        <div class="amazon-pay-alert alert alert-warning" style="padding:10px; margin:10px 0; background:#ffe098; border:1px solid #a87608;">
+            <p>
+                {$smarty.const.TEXT_AMAZON_PAY_ADDRESS_INFORMATION}
+            </p>
+        </div>
+    </td>
+</tr>
+{/if}
+{* EOF Amazon Pay Checkout *}
+
+{$FORM_ACTION}
+{if $error != ''}<div class="errormessage">{$error}</div>{/if}
+{$MODULE_address_book_details}
+{if $delete == '1'}
+<h1>{#title_delete#}</h1>
+<p>{#text_delete#}</p>
+<h2>{#text_address#}</h2>
+<p>{$ADDRESS}</p>
+{/if}
+<p>{$BUTTON_BACK}&nbsp;{$BUTTON_UPDATE}&nbsp;{$BUTTON_DELETE}</p>
+{$FORM_END}

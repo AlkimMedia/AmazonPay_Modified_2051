@@ -75,10 +75,12 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
     } else {
         if ($accountHelper->isLoggedIn() && $accountHelper->getStatusId() !== (int)DEFAULT_CUSTOMERS_STATUS_ID_GUEST) {
             if ($accountHelper->isAccountComplete($_SESSION['customer_id']) === false) {
-                xtc_redirect(xtc_href_link(FILENAME_ACCOUNT_EDIT));
+                $_SESSION['checkout_with_incomplete_account_started'] = true;
+                xtc_redirect(xtc_href_link(FILENAME_ACCOUNT_EDIT, 'amazon_pay_error=1'));
             }
             if ($accountHelper->hasAddress($_SESSION['customer_id']) === false) {
-                xtc_redirect(xtc_href_link(FILENAME_ADDRESS_BOOK_PROCESS));
+                $_SESSION['checkout_with_incomplete_account_started'] = true;
+                xtc_redirect(xtc_href_link(FILENAME_ADDRESS_BOOK_PROCESS, 'amazon_pay_error=1'));
             }
         }
     }
@@ -87,6 +89,10 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
 if (strpos($PHP_SELF, 'checkout_payment.php') !== false) {
     $_SESSION['amazon_pay_delivery_zip'] = null;
     $_SESSION['amazon_pay_delivery_country'] = null;
+    
+    if($_SESSION['sendto'] === false){
+        unset($_SESSION['sendto']);
+    }
 
     if(!empty($_SESSION['sendto'])){
         $q = "SELECT entry_postcode, entry_country_id FROM ".TABLE_ADDRESS_BOOK." WHERE address_book_id = ".(int)$_SESSION['sendto'];
@@ -202,3 +208,27 @@ if (strpos($PHP_SELF, 'checkout_success.php') !== false) {
         define('AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION', '');
     }
 }
+
+if(strpos($PHP_SELF, 'address_book.php')!==false){
+    if($_SESSION['checkout_with_incomplete_account_started']){
+        if(!$_SESSION['customer_default_address_id']){
+            $q = "SELECT * FROM ".TABLE_ADDRESS_BOOK." WHERE customers_id = ".(int)$_SESSION['customer_id']." AND entry_street_address != '' AND entry_street_address IS NOT NULL";
+            $rs = xtc_db_query($q);
+            if($r = xtc_db_fetch_array($rs)){
+                $q = "UPDATE ".TABLE_CUSTOMERS." SET customers_default_address_id = ".(int)$r['address_book_id'];
+                xtc_db_query($q);
+                $_SESSION['customer_default_address_id'] = (int)$r['address_book_id'];
+            }
+        }
+        unset($_SESSION['checkout_with_incomplete_account_started']);
+        xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
+    }
+}
+
+if(strpos($PHP_SELF, 'account.php')!==false){
+    if($_SESSION['checkout_with_incomplete_account_started']){
+        unset($_SESSION['checkout_with_incomplete_account_started']);
+        xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
+    }
+} 	} 
+

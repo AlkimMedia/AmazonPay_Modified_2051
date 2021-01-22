@@ -90,6 +90,7 @@ class ConfigHelper
 
     public function getConfigurationFields()
     {
+        $this->initKey();
         return [
             'HEADING_CREDENTIALS'=>[
                 'type'  => static::FIELD_TYPE_HEADING,
@@ -213,6 +214,12 @@ class ConfigHelper
         }
 
         return $return;
+    }
+    
+    public function initKey(){
+        if(!file_exists($this->getPrivateKeyPath()) || !file_exists($this->getPublicKeyPath())){
+            $this->resetKey();
+        }
     }
 
     public function resetKey()
