@@ -1,7 +1,7 @@
 <?php
 
 include __DIR__ . '/../amazon_pay.php';
-$configHelper                        = new \AlkimAmazonPay\ConfigHelper();
+$configHelper = new \AlkimAmazonPay\ConfigHelper();
 if (strpos($PHP_SELF, 'shopping_cart.php') !== false && !empty($_SESSION['payment']) && $_SESSION['payment'] === 'amazon_pay') {
     unset($_SESSION['payment']);
 }
@@ -25,30 +25,34 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
             require_once DIR_FS_INC . 'xtc_create_password.inc.php';
             $password       = xtc_create_password(32);
             $sql_data_array = [
-                'customers_status'             => DEFAULT_CUSTOMERS_STATUS_ID_GUEST,
-                'customers_gender'             => '',
-                'customers_firstname'          => $firstName,
-                'customers_lastname'           => $lastName,
-                'customers_dob'                => '0000-00-00 00:00:00',
-                'customers_email_address'      => $checkoutSession->getBuyer()->getEmail(),
+                'customers_status' => DEFAULT_CUSTOMERS_STATUS_ID_GUEST,
+                'customers_gender' => '',
+                'customers_firstname' => $firstName,
+                'customers_lastname' => $lastName,
+                'customers_dob' => '0000-00-00 00:00:00',
+                'customers_email_address' => $checkoutSession->getBuyer()->getEmail(),
                 'customers_default_address_id' => '0',
-                'customers_telephone'          => '',
-                'customers_password'           => $password,
-                'customers_newsletter'         => 0,
-                'customers_newsletter_mode'    => 0,
-                'member_flag'                  => 0,
-                'delete_user'                  => 1,
-                'account_type'                 => 1
+                'customers_telephone' => '',
+                'customers_password' => $password,
+                'customers_newsletter' => 0,
+                'customers_newsletter_mode' => 0,
+                'member_flag' => 0,
+                'delete_user' => 1,
+                'account_type' => 1,
             ];
 
             xtc_db_perform(TABLE_CUSTOMERS, $sql_data_array);
             $_SESSION['customer_id'] = xtc_db_insert_id();
             $needsMainAddress        = true;
         }
-        if ($shippingAddressId = $accountHelper->getAddressId($checkoutSession->getShippingAddress())) {
-            $_SESSION["sendto"] = $shippingAddressId;
+        if ($checkoutSession->getShippingAddress()) {
+            if ($shippingAddressId = $accountHelper->getAddressId()) {
+                $_SESSION["sendto"] = $shippingAddressId;
+            } else {
+                $_SESSION["sendto"] = $accountHelper->createAddress($checkoutSession->getShippingAddress());
+            }
         } else {
-            $_SESSION["sendto"] = $accountHelper->createAddress($checkoutSession->getShippingAddress());
+            $_SESSION["sendto"] = false;
         }
 
         if ($billingAddressId = $accountHelper->getAddressId($checkoutSession->getBillingAddress())) {
@@ -63,11 +67,11 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
 
         $_SESSION['payment'] = $configHelper->getPaymentMethodName();
 
-        if(!empty($_SESSION['shipping']) && !empty($_SESSION['shipping']['id'])){
-            $q = "SELECT entry_postcode, entry_country_id FROM ".TABLE_ADDRESS_BOOK." WHERE address_book_id = ".(int)$_SESSION['sendto'];
+        if (!empty($_SESSION['shipping']) && !empty($_SESSION['shipping']['id'])) {
+            $q  = "SELECT entry_postcode, entry_country_id FROM " . TABLE_ADDRESS_BOOK . " WHERE address_book_id = " . (int)$_SESSION['sendto'];
             $rs = xtc_db_query($q);
-            if($r = xtc_db_fetch_array($rs)){
-                if($_SESSION['amazon_pay_delivery_zip'] === $r['entry_postcode'] && $_SESSION['amazon_pay_delivery_country'] === $r['entry_country_id']){
+            if ($r = xtc_db_fetch_array($rs)) {
+                if ($_SESSION['amazon_pay_delivery_zip'] === $r['entry_postcode'] && $_SESSION['amazon_pay_delivery_country'] === $r['entry_country_id']) {
                     xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT));
                 }
             }
@@ -87,18 +91,18 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
 }
 
 if (strpos($PHP_SELF, 'checkout_payment.php') !== false) {
-    $_SESSION['amazon_pay_delivery_zip'] = null;
+    $_SESSION['amazon_pay_delivery_zip']     = null;
     $_SESSION['amazon_pay_delivery_country'] = null;
-    
-    if($_SESSION['sendto'] === false){
+
+    if ($_SESSION['sendto'] === false) {
         unset($_SESSION['sendto']);
     }
 
-    if(!empty($_SESSION['sendto'])){
-        $q = "SELECT entry_postcode, entry_country_id FROM ".TABLE_ADDRESS_BOOK." WHERE address_book_id = ".(int)$_SESSION['sendto'];
+    if (!empty($_SESSION['sendto'])) {
+        $q  = "SELECT entry_postcode, entry_country_id FROM " . TABLE_ADDRESS_BOOK . " WHERE address_book_id = " . (int)$_SESSION['sendto'];
         $rs = xtc_db_query($q);
-        if($r = xtc_db_fetch_array($rs)){
-            $_SESSION['amazon_pay_delivery_zip'] = $r['entry_postcode'];
+        if ($r = xtc_db_fetch_array($rs)) {
+            $_SESSION['amazon_pay_delivery_zip']     = $r['entry_postcode'];
             $_SESSION['amazon_pay_delivery_country'] = $r['entry_country_id'];
         }
     }
@@ -176,7 +180,7 @@ if (strpos($PHP_SELF, 'checkout_process.php') !== false && !empty($_SESSION['pay
     } else {
         if ($checkoutSession->getStatusDetails()->getState() === \AmazonPayExtendedSdk\Struct\StatusDetails::CANCELED) {
             unset($_SESSION['payment']);
-            xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT, 'payment_error='.$configHelper->getPaymentMethodName()));
+            xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $configHelper->getPaymentMethodName()));
         } else {
             \AlkimAmazonPay\GeneralHelper::log('warning', 'error x1');
             xtc_redirect(xtc_href_link(FILENAME_SHOPPING_CART, ''));
@@ -198,25 +202,24 @@ if (strpos($PHP_SELF, 'checkout_success.php') !== false) {
 
     if ($order = xtc_db_fetch_array($orders_query)) {
         if ($order["payment_class"] === $configHelper->getPaymentMethodName()
-                &&
+            &&
             $order['status'] === \AmazonPayExtendedSdk\Struct\StatusDetails::AUTHORIZATION_INITIATED
         ) {
             define('AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION', TEXT_AMAZON_PAY_PENDING);
         }
     }
-    if(!defined('AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION')){
+    if (!defined('AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION')) {
         define('AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION', '');
     }
 }
 
-if(strpos($PHP_SELF, 'address_book.php')!==false){
-    if($_SESSION['checkout_with_incomplete_account_started']){
-        if(!$_SESSION['customer_default_address_id']){
-            $q = "SELECT * FROM ".TABLE_ADDRESS_BOOK." WHERE customers_id = ".(int)$_SESSION['customer_id']." AND entry_street_address != '' AND entry_street_address IS NOT NULL";
+if (strpos($PHP_SELF, 'address_book.php') !== false) {
+    if ($_SESSION['checkout_with_incomplete_account_started']) {
+        if (!$_SESSION['customer_default_address_id']) {
+            $q  = "SELECT * FROM " . TABLE_ADDRESS_BOOK . " WHERE customers_id = " . (int)$_SESSION['customer_id'] . " AND entry_street_address != '' AND entry_street_address IS NOT NULL";
             $rs = xtc_db_query($q);
-            if($r = xtc_db_fetch_array($rs)){
-                $q = "UPDATE ".TABLE_CUSTOMERS." SET customers_default_address_id = ".(int)$r['address_book_id'];
-                xtc_db_query($q);
+            if ($r = xtc_db_fetch_array($rs)) {
+                xtc_db_perform(TABLE_CUSTOMERS, ['customers_default_address_id' => (int)$r['address_book_id']], 'update', 'customers_id = ' . (int)$_SESSION['customer_id']);
                 $_SESSION['customer_default_address_id'] = (int)$r['address_book_id'];
             }
         }
@@ -225,10 +228,9 @@ if(strpos($PHP_SELF, 'address_book.php')!==false){
     }
 }
 
-if(strpos($PHP_SELF, 'account.php')!==false){
-    if($_SESSION['checkout_with_incomplete_account_started']){
+if (strpos($PHP_SELF, 'account.php') !== false) {
+    if ($_SESSION['checkout_with_incomplete_account_started']) {
         unset($_SESSION['checkout_with_incomplete_account_started']);
         xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
     }
-} 	} 
-
+}
