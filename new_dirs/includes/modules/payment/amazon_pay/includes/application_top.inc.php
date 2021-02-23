@@ -46,7 +46,7 @@ if (strpos($PHP_SELF, 'checkout_shipping.php') !== false) {
             $needsMainAddress        = true;
         }
         if ($checkoutSession->getShippingAddress()) {
-            if ($shippingAddressId = $accountHelper->getAddressId()) {
+            if ($shippingAddressId = $accountHelper->getAddressId($checkoutSession->getShippingAddress())) {
                 $_SESSION["sendto"] = $shippingAddressId;
             } else {
                 $_SESSION["sendto"] = $accountHelper->createAddress($checkoutSession->getShippingAddress());
