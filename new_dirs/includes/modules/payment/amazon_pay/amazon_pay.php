@@ -2,7 +2,7 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 
-if(!empty($_SESSION['language'])){
+if(!empty($_SESSION['language']) && file_exists(__DIR__.'/lang/'.$_SESSION['language'].'.php')){
     require_once __DIR__.'/lang/'.$_SESSION['language'].'.php';
 }
 

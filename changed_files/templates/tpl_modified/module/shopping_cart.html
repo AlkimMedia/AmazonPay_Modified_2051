@@ -32,7 +32,7 @@
       {$BUTTON_CHECKOUT}
       {* BOF Amazon Pay Checkout *}
       {if 'MODULE_PAYMENT_AMAZON_PAY_STATUS'|defined && $smarty.const.MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True'}
-        <div class="amazon-pay-button"></div>
+        <div class="amazon-pay-button-outer-container"><div class="amazon-pay-button" style="float:right; max-width:170px;"></div></div>
       {/if}
       {* EOF Amazon Pay Checkout *}
       {if isset($BUTTON_CHECKOUT_EXPRESS)}{if $BUTTON_PAYPAL != ''}<span class="paypal_button2">{$BUTTON_PAYPAL}</span>{/if}{/if}

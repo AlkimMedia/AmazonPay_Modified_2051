@@ -27,7 +27,7 @@
       <a href="{$LINK_CART}"><strong>{#heading_cart#}&nbsp;&raquo;</strong></a>
       {* BOF Amazon Pay Checkout *}
       {if 'MODULE_PAYMENT_AMAZON_PAY_STATUS'|defined && $smarty.const.MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True'}
-        <div class="amazon-pay-button"></div>
+        <div class="amazon-pay-button" style="float:right;"></div>
       {/if}
       {* EOF Amazon Pay Checkout *}
     </div>    

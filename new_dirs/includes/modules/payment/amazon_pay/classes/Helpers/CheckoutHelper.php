@@ -5,7 +5,13 @@ namespace AlkimAmazonPay;
 use AmazonPayExtendedSdk\Struct\AddressRestrictions;
 use AmazonPayExtendedSdk\Struct\CheckoutSession;
 use AmazonPayExtendedSdk\Struct\DeliverySpecifications;
+use AmazonPayExtendedSdk\Struct\MerchantMetadata;
+use AmazonPayExtendedSdk\Struct\PaymentDetails;
+use AmazonPayExtendedSdk\Struct\Price;
 use AmazonPayExtendedSdk\Struct\WebCheckoutDetails;
+use order;
+use order_total;
+use shipping;
 
 class CheckoutHelper
 {
@@ -28,27 +34,27 @@ class CheckoutHelper
     {
         try {
 
-        $storeName = (strlen(STORE_NAME) <= 50)?STORE_NAME:(substr(STORE_NAME, 0, 47).'...');
-        $merchantData = new \AmazonPayExtendedSdk\Struct\MerchantMetadata();
-        $merchantData->setMerchantStoreName($storeName);
-        
-        $webCheckoutDetails = new WebCheckoutDetails();
-        $webCheckoutDetails->setCheckoutReviewReturnUrl(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
+            $storeName    = (strlen(STORE_NAME) <= 50) ? STORE_NAME : (substr(STORE_NAME, 0, 47) . '...');
+            $merchantData = new MerchantMetadata();
+            $merchantData->setMerchantStoreName($storeName);
 
-        $addressRestrictions = new AddressRestrictions();
-        $addressRestrictions->setType('Allowed')
-                            ->setRestrictions($this->configHelper->getAllowedCountries());
-        $deliverySpecifications = new DeliverySpecifications();
-        $deliverySpecifications->setAddressRestrictions($addressRestrictions);
+            $webCheckoutDetails = new WebCheckoutDetails();
+            $webCheckoutDetails->setCheckoutReviewReturnUrl(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
 
-        $checkoutSession = new CheckoutSession();
-        $checkoutSession->setMerchantMetadata($merchantData)
-                        ->setWebCheckoutDetails($webCheckoutDetails)
-                        ->setStoreId($this->configHelper->getClientId())
-                        ->setPlatformId($this->configHelper->getPlatformId())
-                        ->setDeliverySpecifications($deliverySpecifications);
+            $addressRestrictions = new AddressRestrictions();
+            $addressRestrictions->setType('Allowed')
+                ->setRestrictions($this->configHelper->getAllowedCountries());
+            $deliverySpecifications = new DeliverySpecifications();
+            $deliverySpecifications->setAddressRestrictions($addressRestrictions);
 
-        return $this->amazonPayHelper->getClient()->createCheckoutSession($checkoutSession);
+            $checkoutSession = new CheckoutSession();
+            $checkoutSession->setMerchantMetadata($merchantData)
+                ->setWebCheckoutDetails($webCheckoutDetails)
+                ->setStoreId($this->configHelper->getClientId())
+                ->setPlatformId($this->configHelper->getPlatformId())
+                ->setDeliverySpecifications($deliverySpecifications);
+
+            return $this->amazonPayHelper->getClient()->createCheckoutSession($checkoutSession);
         } catch (\Exception $e) {
             GeneralHelper::log('error', 'createCheckoutSession failed', $e->getMessage());
         }
@@ -99,12 +105,20 @@ class CheckoutHelper
         $checkoutButtonColor      = APC_CHECKOUT_BUTTON_COLOR;
         $loginButtonColor         = APC_LOGIN_BUTTON_COLOR;
 
-        $client         = $this->amazonPayHelper->getClient();
-        $loginPayload   = json_encode([
+        $client       = $this->amazonPayHelper->getClient();
+        $loginPayload = json_encode([
             'signInReturnUrl' => xtc_href_link('amazon_pay_login.php'),
-            'storeId'         => $this->configHelper->getClientId(),
-            'signInScopes'    => ["name", "email", "postalCode"]
+            'storeId' => $this->configHelper->getClientId(),
+            'signInScopes' => ["name", "email", "postalCode"],
         ]);
+
+        $productType = 'PayAndShip';
+        if ($_SESSION['cart']->count_contents() > 0) {
+            if ($_SESSION['cart']->get_content_type() === 'virtual' || $_SESSION['cart']->count_contents_virtual() == 0) {
+                $productType = 'PayOnly';
+            }
+        }
+
         $loginSignature = $client->generateButtonSignature($loginPayload);
         $publicKeyId    = $this->configHelper->getPublicKeyId();
 
@@ -143,7 +157,7 @@ class CheckoutHelper
                                 sandbox: $isSandbox,
                                 ledgerCurrency: '$currency',
                                 checkoutLanguage: '$language',
-                                productType: 'PayAndShip',
+                                productType: '$productType',
                                 placement: '$placement',
                                 buttonColor: '$checkoutButtonColor'
                             });
@@ -158,7 +172,7 @@ class CheckoutHelper
                             sandbox: $isSandbox,
                             ledgerCurrency: '$currency',
                             checkoutLanguage: '$language',
-                            productType: 'PayAndShip',
+                            productType: '$productType',
                             placement: '$placement',
                             buttonColor: '$checkoutButtonColor'
                         });
@@ -179,7 +193,7 @@ class CheckoutHelper
                             sandbox: $isSandbox,
                             ledgerCurrency: '$currency',
                             checkoutLanguage: '$language',
-                            productType: 'PayAndShip',
+                            productType: '$productType',
                             placement: '$placement',
                             buttonColor: '$checkoutButtonColor'
                         });
@@ -233,5 +247,50 @@ EOT;
         }
 
         return $return;
+    }
+
+    /**
+     * @param $checkoutSession
+     */
+    public function doUpdateCheckoutSessionBeforeCheckoutProcess($checkoutSession)
+    {
+        global $order, $order_totals, $shipping_modules, $order_total_modules;
+        require_once DIR_WS_CLASSES . 'payment.php';
+        require_once DIR_WS_CLASSES . 'shipping.php';
+        $shipping_modules = new shipping($_SESSION['shipping']);
+        require_once DIR_WS_CLASSES . 'order.php';
+        $order = new order();
+        require_once DIR_WS_CLASSES . 'order_total.php';
+        $order_total_modules = new order_total();
+        $order_totals        = $order_total_modules->process();
+
+        $checkoutSessionUpdate = new CheckoutSession();
+
+        $webCheckoutDetails = new WebCheckoutDetails();
+        $webCheckoutDetails->setCheckoutResultReturnUrl($this->configHelper->getCheckoutResultReturnUrl());
+
+        $paymentDetails = new PaymentDetails();
+        $paymentDetails
+            ->setPaymentIntent('Authorize')
+            ->setCanHandlePendingAuthorization(true)
+            ->setChargeAmount(new Price(['amount' => $order->info['total'], 'currencyCode' => $order->info['currency']]));
+
+        $checkoutSessionUpdate
+            ->setWebCheckoutDetails($webCheckoutDetails)
+            ->setPaymentDetails($paymentDetails);
+        $updatedCheckoutSession = $this->updateCheckoutSession($checkoutSession->getCheckoutSessionId(), $checkoutSessionUpdate);
+
+        if ($redirectUrl = $updatedCheckoutSession->getWebCheckoutDetails()->getAmazonPayRedirectUrl()) {
+            xtc_redirect($redirectUrl);
+        } else {
+            GeneralHelper::log('warning', 'updateCheckoutSession failed', $checkoutSessionUpdate);
+            xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_CONFIRMATION, 'amazon_pay_error', 'SSL'));
+        }
+    }
+
+    public function defaultErrorHandling()
+    {
+        unset($_SESSION['payment']);
+        xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $this->configHelper->getPaymentMethodName()));
     }
 }

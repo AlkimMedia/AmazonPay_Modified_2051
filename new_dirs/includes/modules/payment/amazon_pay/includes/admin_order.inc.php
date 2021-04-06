@@ -1,5 +1,5 @@
 <?php
-include __DIR__ . '/../amazon_pay.php';
+require_once __DIR__ . '/../amazon_pay.php';
 $orderId = (int)$_GET['oID'];
 
 
@@ -30,6 +30,12 @@ $rs = xtc_db_query($q);
         font-size: 1.2em;
     }
 </style>
+<?php
+if(!empty($_SESSION['amazon_pay_admin_error'])){
+    echo '<div style="background:#ffdddd; border: #cc0000; padding:10px; margin: 10px 0; display:inline-block;">'.$_SESSION['amazon_pay_admin_error'].'</div>';
+    unset($_SESSION['amazon_pay_admin_error']);
+}
+?>
 <div id="amazon-pay-panel">
 <h3>Transaktionen</h3>
 <table class="main" cellpadding="4">
@@ -82,15 +88,15 @@ while($r = xtc_db_fetch_array($rs)){
             <td>';
     if($transaction->type === 'Charge' && $transaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::AUTHORIZED){
         echo '<form method="POST" action="'.xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=capture&charge_id='.$transaction->reference, 'SSL').'">
-                <input type="number" name="amount" step="0.01" max="'.$transaction->charge_amount.'" value="'.$transaction->charge_amount.'" />
+                <input type="number" name="amount" step="0.01" min="0.01" max="'.$transaction->charge_amount.'" value="'.$transaction->charge_amount.'" />
                 <button class="button">Zahlung einziehen</button>
               </form>';
     }
     if($transaction->type === 'Charge' && $transaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::CAPTURED && round($transaction->captured_amount*1.15, 2) - $transaction->refunded_amount > 0){
-        $amount = $transaction->captured_amount - $transaction->refunded_amount;
+        $amount = max($transaction->captured_amount - $transaction->refunded_amount, 0);
         $maxAmount = round($transaction->captured_amount*1.15, 2) - $transaction->refunded_amount;
         echo '<form method="POST" action="'.xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=refund&charge_id='.$transaction->reference, 'SSL').'">
-                <input type="number" name="amount" step="0.01" max="'.$maxAmount.'" value="'.$amount.'" />
+                <input type="number" name="amount" step="0.01" min="0.01" max="'.$maxAmount.'" value="'.$amount.'" />
                 <button class="button">Zahlung erstatten</button>
               </form>';
     }
@@ -100,12 +106,45 @@ while($r = xtc_db_fetch_array($rs)){
 </table>
 <?php
 if($capturedTotal < $originalTotal && !$hasOpenCharge && $chargePermissionId !== null){
-    $amount = $originalTotal - $capturedTotal;
-    echo '<h3>Weitere Zahlung autorisieren</h3>
-              <form method="POST" action="'.xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=create_charge&charge_permission_id='.$chargePermissionId, 'SSL').'">
-                <input type="number" name="amount" step="0.01" max="'.$amount.'" value="'.$amount.'" />
+    $chargePermissionTransaction = $transactionHelper->getTransaction($chargePermissionId);
+    if($chargePermissionTransaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::CHARGEABLE) {
+        $amount = $originalTotal - $capturedTotal;
+        echo '<h3>Weitere Zahlung autorisieren</h3>
+              <form method="POST" action="' . xtc_href_link('orders.php', 'oID=' . $orderId . '&action=edit&amazon_pay_action=create_charge&charge_permission_id=' . $chargePermissionId, 'SSL') . '">
+                <input type="number" name="amount" step="0.01" min="0.01" max="' . $amount . '" value="' . $amount . '" />
                 <button class="button">Autorisieren</button>
               </form>';
+    }
 }
 ?>
+    <br /><a href="<?php echo xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=refresh', 'SSL'); ?>" class="button main">Aktualisieren</a>
 </div>
+<?php
+if(!defined('AMAZON_PAY_IS_AJAX')){
+    ?>
+        <script>
+            let lastAmazonPayRefresherResponse = '';
+            const amazonPayRefresherFunction = function(){
+                const url = '<?php echo xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=get_admin_html', 'SSL'); ?>',
+                xhr = new XMLHttpRequest();
+                xhr.open("GET", url);
+                xhr.onload = function(xhr){
+                    const _doc = new DOMParser().parseFromString(this.response, "text/html")
+                    const panel = document.getElementById('amazon-pay-panel');
+                    const newPanel = document.createElement('div');
+                    const newHtml = _doc.getElementById('amazon-pay-panel').innerHTML;
+                    if(newHtml === lastAmazonPayRefresherResponse){
+                        return;
+                    }
+                    lastAmazonPayRefresherResponse = newHtml;
+                    newPanel.innerHTML = newHtml;
+                    panel.parentElement.replaceChild(newPanel, panel);
+                    newPanel.id = 'amazon-pay-panel';
+                }
+                xhr.send();
+            }
+            amazonPayRefresherFunction();
+            setInterval(amazonPayRefresherFunction, 5000);
+        </script>
+    <?php
+}

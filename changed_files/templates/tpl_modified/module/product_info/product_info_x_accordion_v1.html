@@ -94,7 +94,7 @@
           <span class="addtobasket_button">{$ADD_CART_BUTTON}</span>
           {* BOF Amazon Pay Checkout *}
           {if 'MODULE_PAYMENT_AMAZON_PAY_STATUS'|defined && $smarty.const.MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True'}
-            <div id="amazon-pay-button-product-info"></div>
+            <div id="amazon-pay-button-product-info" style="clear:both;"></div>
           {/if}
           {* EOF Amazon Pay Checkout *}
           {if isset($ADD_CART_BUTTON_EXPRESS)}

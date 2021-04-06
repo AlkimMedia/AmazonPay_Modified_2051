@@ -4,6 +4,10 @@ namespace AlkimAmazonPay\Models;
 
 class Transaction
 {
+    const TRANSACTION_TYPE_CHARGE = 'Charge';
+    const TRANSACTION_TYPE_CHARGE_PERMISSION = 'ChargePermission';
+    const TRANSACTION_TYPE_REFUND = 'Refund';
+
     public $id;
     public $reference;
     public $merchant_id;

@@ -24,7 +24,6 @@ abstract class StructBase{
             if (method_exists($this, $methodName)) {
                 $this->{$methodName}($fieldValue);
             }else{
-                //TODO remove
                 //throw new \Exception('field not found: '.$fieldName.' in '.get_called_class());
             }
         }

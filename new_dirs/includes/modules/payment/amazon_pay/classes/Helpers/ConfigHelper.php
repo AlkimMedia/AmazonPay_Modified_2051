@@ -45,7 +45,7 @@ class ConfigHelper
 
     public function getCheckoutResultReturnUrl()
     {
-        return str_replace('http://', 'https://', xtc_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL')); //TODO remove replace
+        return xtc_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL');
     }
 
     public function getCheckoutSessionAjaxUrl()

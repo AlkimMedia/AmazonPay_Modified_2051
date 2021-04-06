@@ -30,7 +30,7 @@ $texts = [
     'APC_ORDER_STATUS_CAPTURED_TITLE'=>'Status f&uuml;r Bestellungen mit eingezogener Zahlung',
     'APC_CAPTURE_MODE_TITLE'=>'Art des Zahlungseinzugs',
     'APC_ORDER_STATUS_SHIPPED_TITLE'=>'Status f&uuml;r versendete Bestellungen',
-    
+
     'HEADING_CREDENTIALS_TITLE'=>'Amazon Pay Konto',
     'HEADING_GENERAL_TITLE'=>'Allgemeine Einstellungen',
     'HEADING_STYLE_TITLE'=>'Design Einstellungen',
@@ -40,7 +40,6 @@ $texts = [
     'TEXT_AMAZON_PAY_PENDING'=>'Ihre Zahlung mit Amazon Pay ist derzeit noch in Pr&uuml;fung. Bitte beachten Sie, dass wir uns mit Ihnen in K&uuml;rze per Email in Verbindung setzen werden, falls noch Unklarheiten bestehen sollten.',
     'TEXT_AMAZON_PAY_ACCOUNT_EDIT_INFORMATION'=>'Um den Checkout zu starten, ben&ouml;tigen wir noch folgende Informationen von Ihnen',
     'TEXT_AMAZON_PAY_ADDRESS_INFORMATION'=>'Bitte geben Sie Ihre Versandadresse ein'
-
 ];
 
 foreach($texts as $k=>$v){

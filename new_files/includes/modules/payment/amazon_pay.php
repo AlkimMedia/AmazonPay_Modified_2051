@@ -3,7 +3,8 @@ require_once DIR_FS_CATALOG . 'includes/modules/payment/amazon_pay/amazon_pay.ph
 
 use AlkimAmazonPay\AmazonPayHelper;
 use AlkimAmazonPay\CheckoutHelper;
-use AlkimAmazonPay\ConfigHelper;
+use AlkimAmazonPay\GeneralHelper;
+use AlkimAmazonPay\Helpers\TransactionHelper;
 use AlkimAmazonPay\InstallHelper;
 use AmazonPayExtendedSdk\Struct\PaymentDetails;
 use AmazonPayExtendedSdk\Struct\Price;
@@ -97,11 +98,13 @@ class amazon_pay
     {
         global $insert_id;
 
+        //checkout session must be in status 'open'
+        //this is taken care of in includes/modules/payment/amazon_pay/includes/actions/checkout_process.php
+
         //complete checkout session
         $amazonPayHelper = new AmazonPayHelper();
-        $configHelper    = new ConfigHelper();
         $checkoutHelper  = new CheckoutHelper();
-        $transactionHelper = new \AlkimAmazonPay\Helpers\TransactionHelper();
+        $transactionHelper = new TransactionHelper();
 
         $paymentDetails = new PaymentDetails();
 
@@ -110,52 +113,19 @@ class amazon_pay
         $order        = new order($insert_id);
 
         $paymentDetails->setChargeAmount(new Price(['amount' => round($orderTotal['value'], 2), 'currencyCode' => $order->info['currency']]));
-        //TODO handle errors
+
         try {
             $checkoutSession = $amazonPayHelper->getClient()->completeCheckoutSession($_SESSION['amazon_checkout_session'], $paymentDetails);
-
-            $transaction                = new \AlkimAmazonPay\Models\Transaction();
-            $transaction->type          = 'CheckoutSession';
-            $transaction->reference     = $checkoutSession->getCheckoutSessionId();
-            $transaction->charge_amount = $orderTotal['value'];
-            $transaction->currency      = $order->info['currency'];
-            $transaction->mode          = $configHelper->isSandbox() ? 'sandbox' : 'live';
-            $transaction->merchant_id   = $configHelper->getMerchantId();
-            $transaction->status        = $checkoutSession->getStatusDetails()->getState();
-            $transaction->order_id      = $insert_id;
-
-            xtc_db_perform('amazon_pay_transactions', $transaction->toArray());
+            $transactionHelper->saveNewCheckoutSession($checkoutSession, $orderTotal['value'], $order->info['currency'], $insert_id);
 
             if ($checkoutSession->getChargePermissionId()) {
                 $chargePermission           = $amazonPayHelper->getClient()->getChargePermission($checkoutSession->getChargePermissionId());
-                $transaction                = new \AlkimAmazonPay\Models\Transaction();
-                $transaction->type          = 'ChargePermission';
-                $transaction->reference     = $chargePermission->getChargePermissionId();
-                $transaction->time          = date('Y-m-d H:i:s', strtotime($chargePermission->getCreationTimestamp()));
-                $transaction->expiration    = date('Y-m-d H:i:s', strtotime($chargePermission->getExpirationTimestamp()));
-                $transaction->charge_amount = $chargePermission->getLimits()->getAmountLimit()->getAmount();
-                $transaction->currency      = $chargePermission->getLimits()->getAmountLimit()->getCurrencyCode();
-                $transaction->mode          = strtolower($chargePermission->getReleaseEnvironment());
-                $transaction->merchant_id   = $configHelper->getMerchantId();
-                $transaction->status        = $chargePermission->getStatusDetails()->getState();
-                $transaction->order_id      = $insert_id;
-                xtc_db_perform('amazon_pay_transactions', $transaction->toArray());
+                $transactionHelper->saveNewChargePermission($chargePermission, $insert_id);
             }
 
             if ($checkoutSession->getChargeId()) {
                 $charge                     = $amazonPayHelper->getClient()->getCharge($checkoutSession->getChargeId());
-                $transaction                = new \AlkimAmazonPay\Models\Transaction();
-                $transaction->type          = 'Charge';
-                $transaction->reference     = $charge->getChargeId();
-                $transaction->time          = date('Y-m-d H:i:s', strtotime($charge->getCreationTimestamp()));
-                $transaction->expiration    = date('Y-m-d H:i:s', strtotime($charge->getExpirationTimestamp()));
-                $transaction->charge_amount = $charge->getChargeAmount()->getAmount();
-                $transaction->currency      = $charge->getChargeAmount()->getCurrencyCode();
-                $transaction->mode          = strtolower($charge->getReleaseEnvironment());
-                $transaction->merchant_id   = $configHelper->getMerchantId();
-                $transaction->status        = $charge->getStatusDetails()->getState();
-                $transaction->order_id      = $insert_id;
-                xtc_db_perform('amazon_pay_transactions', $transaction->toArray());
+                $transaction = $transactionHelper->saveNewCharge($charge, $insert_id);
                 if ($transaction->status === StatusDetails::AUTHORIZED && APC_CAPTURE_MODE === 'after_auth') {
                     $transactionHelper->capture($charge->getChargeId());
                 }
@@ -163,11 +133,9 @@ class amazon_pay
 
             $checkoutHelper->setOrderIdToChargePermission($checkoutSession->getChargePermissionId(), $insert_id);
         } catch (Exception $e) {
-            //TODO handle
-            //xtc_redirect(xtc_href_link(FILENAME_SHOPPING_CART));
             $checkoutSession = $amazonPayHelper->getClient()->getCheckoutSession($_SESSION['amazon_checkout_session']);
-            var_dump($e->getMessage(), $orderTotal['value'], $checkoutSession, $insert_id);
-            die;
+            GeneralHelper::log('error', 'unexpected exception during checkout', [$e->getMessage(), $checkoutSession->toArray()]);
+            $checkoutHelper->defaultErrorHandling();
         }
     }
 

@@ -13,6 +13,10 @@ class StatusDetails extends StructBase
     const CANCELED = 'Canceled';
     const DECLINED = 'Declined';
     const AUTHORIZATION_INITIATED = 'AuthorizationInitiated';
+    const REASON_DECLINED = 'Declined';
+    const REASON_BUYER_CANCELED = 'BuyerCanceled';
+    const NON_CHARGEABLE = 'NonChargeable';
+    const CHARGEABLE = 'Chargeable';
 
     /**
      * @var string

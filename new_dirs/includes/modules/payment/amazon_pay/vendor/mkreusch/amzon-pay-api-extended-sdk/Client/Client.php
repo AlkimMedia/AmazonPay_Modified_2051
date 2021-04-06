@@ -94,7 +94,10 @@ class Client extends \Amazon\Pay\API\Client{
     public function getCharge($chargeId, $headers = null)
     {
         $result = parent::getCharge($chargeId, $headers);
-        //$result['status']
+        if($result['status'] < 200 || $result['status'] > 299) {
+            $response = json_decode($result['response'], true);
+            throw new \AmazonPayException('getCharge failed: '.$response['message']);
+        }
         return new Charge(json_decode($result['response'], true));
     }
 

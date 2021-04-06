@@ -17,14 +17,6 @@
 
 <h1 class="checkout">{#heading_success#}</h1>
 
-<div class="twoColums">
-  <div class="highlightbox plainleft">
-    <h4>{#title_printorder#}</h4>
-    <p>{#text_printorder#}<br />
-    <strong>{#text_thankyou#}</strong></p>
-  </div>
-</div>
-
 {* BOF Amazon Pay Checkout *}
 {if 'AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION'|defined && $smarty.const.AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION && $smarty.const.AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION !== 'AMAZON_PAY_CHECKOUT_SUCCESS_INFORMATION'}
   <div class="amazon-pay-alert alert alert-warning" style="padding:10px; margin:10px 0; background:#ffe098; border:1px solid #a87608;">
@@ -34,6 +26,14 @@
   </div>
 {/if}
 {* EOF Amazon Pay Checkout *}
+
+<div class="twoColums">
+  <div class="highlightbox plainleft">
+    <h4>{#title_printorder#}</h4>
+    <p>{#text_printorder#}<br />
+    <strong>{#text_thankyou#}</strong></p>
+  </div>
+</div>
 
 <div class="twoColums last">
   <div class="highlightbox plainright">

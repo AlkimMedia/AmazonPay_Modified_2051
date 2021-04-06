@@ -28,7 +28,7 @@ class AmazonPayHelper
             try {
                 self::$client = new Client($this->configHelper->getMainConfig());
             } catch (\Exception $e) {
-                //TODO
+                GeneralHelper::log('error', 'Unable to get client', $e->getMessage());
             }
         }
 
