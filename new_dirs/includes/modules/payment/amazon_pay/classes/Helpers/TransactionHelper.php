@@ -54,16 +54,16 @@ class TransactionHelper
                 $orderHelper = new OrderHelper();
                 if ($transaction->status === StatusDetails::AUTHORIZED) {
                     $orderHelper->setOrderStatusAuthorized($originalChargeTransaction->order_id);
+                    if (APC_CAPTURE_MODE === 'after_auth') {
+                        $this->capture($charge->getChargeId());
+                    }
                 } elseif ($transaction->status === StatusDetails::DECLINED) {
                     $orderHelper->setOrderStatusDeclined($originalChargeTransaction->order_id);
                 } elseif ($transaction->status === StatusDetails::CAPTURED) {
                     $orderHelper->setOrderStatusCaptured($originalChargeTransaction->order_id);
                 }
             }
-
-            if ($transaction->status === StatusDetails::AUTHORIZED && APC_CAPTURE_MODE === 'after_auth') {
-                $this->capture($charge->getChargeId());
-            }
+            
         } catch (\Exception $e) {
             GeneralHelper::log('error', 'updateCharge failed', [$e->getMessage(), $charge]);
         }

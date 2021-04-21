@@ -262,4 +262,8 @@ class ConfigHelper
     {
         return Config::PLUGIN_VERSION;
     }
+    
+    public function getCustomInformationString(){
+        return 'Created by AlkimMedia, modified2, V'.$this->getPluginVersion();
+    }
 }

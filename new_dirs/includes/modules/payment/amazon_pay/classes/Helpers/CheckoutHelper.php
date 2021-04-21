@@ -37,6 +37,7 @@ class CheckoutHelper
             $storeName    = (strlen(STORE_NAME) <= 50) ? STORE_NAME : (substr(STORE_NAME, 0, 47) . '...');
             $merchantData = new MerchantMetadata();
             $merchantData->setMerchantStoreName($storeName);
+            $merchantData->setCustomInformation($this->configHelper->getCustomInformationString());
 
             $webCheckoutDetails = new WebCheckoutDetails();
             $webCheckoutDetails->setCheckoutReviewReturnUrl(xtc_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
