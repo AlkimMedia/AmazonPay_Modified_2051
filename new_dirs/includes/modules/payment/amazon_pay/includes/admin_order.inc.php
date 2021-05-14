@@ -87,7 +87,7 @@ while($r = xtc_db_fetch_array($rs)){
             <td>'.($transaction->type === 'Charge'?number_format($transaction->refunded_amount, 2, ',', '.').' '.$transaction->currency:'').'</td>
             <td>';
     if($transaction->type === 'Charge' && $transaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::AUTHORIZED){
-        echo '<form method="POST" action="'.xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=capture&charge_id='.$transaction->reference, 'SSL').'">
+        echo xtc_draw_form('amzazon_pay_capture', 'orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=capture&charge_id='.$transaction->reference).'
                 <input type="number" name="amount" step="0.01" min="0.01" max="'.$transaction->charge_amount.'" value="'.$transaction->charge_amount.'" />
                 <button class="button">Zahlung einziehen</button>
               </form>';
@@ -95,7 +95,7 @@ while($r = xtc_db_fetch_array($rs)){
     if($transaction->type === 'Charge' && $transaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::CAPTURED && round($transaction->captured_amount*1.15, 2) - $transaction->refunded_amount > 0){
         $amount = max($transaction->captured_amount - $transaction->refunded_amount, 0);
         $maxAmount = round($transaction->captured_amount*1.15, 2) - $transaction->refunded_amount;
-        echo '<form method="POST" action="'.xtc_href_link('orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=refund&charge_id='.$transaction->reference, 'SSL').'">
+        echo xtc_draw_form('amzazon_pay_refund', 'orders.php', 'oID='.$orderId.'&action=edit&amazon_pay_action=refund&charge_id='.$transaction->reference).'
                 <input type="number" name="amount" step="0.01" min="0.01" max="'.$maxAmount.'" value="'.$amount.'" />
                 <button class="button">Zahlung erstatten</button>
               </form>';
@@ -110,7 +110,7 @@ if($capturedTotal < $originalTotal && !$hasOpenCharge && $chargePermissionId !==
     if($chargePermissionTransaction->status === \AmazonPayExtendedSdk\Struct\StatusDetails::CHARGEABLE) {
         $amount = $originalTotal - $capturedTotal;
         echo '<h3>Weitere Zahlung autorisieren</h3>
-              <form method="POST" action="' . xtc_href_link('orders.php', 'oID=' . $orderId . '&action=edit&amazon_pay_action=create_charge&charge_permission_id=' . $chargePermissionId, 'SSL') . '">
+              '.xtc_draw_form('amzazon_pay_authorize', 'orders.php', 'oID=' . $orderId . '&action=edit&amazon_pay_action=create_charge&charge_permission_id=' . $chargePermissionId).'
                 <input type="number" name="amount" step="0.01" min="0.01" max="' . $amount . '" value="' . $amount . '" />
                 <button class="button">Autorisieren</button>
               </form>';
