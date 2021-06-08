@@ -134,7 +134,7 @@ class CheckoutHelper
                             changeAction: 'changeAddress'
                         });
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     try{
                         amazon.Pay.bindChangeAction('#amz-change-payment', {
@@ -142,7 +142,7 @@ class CheckoutHelper
                             changeAction: 'changePayment'
                         });
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     try{
                         var buttons = document.querySelectorAll('.amazon-pay-button');
@@ -164,7 +164,7 @@ class CheckoutHelper
                             });
                          }
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     
                     try{
@@ -185,7 +185,7 @@ class CheckoutHelper
                             });
                         }
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     
                     try{
@@ -209,7 +209,7 @@ class CheckoutHelper
                             });
                         });
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     
                     try{
@@ -234,14 +234,14 @@ class CheckoutHelper
                             });
                          }
                     }catch(e){
-                        console.warn(e);
+                        //console.warn(e);
                     }
                     
                     
               
                     
                     
-                </script>';
+                </script>
 EOT;
         if ($this->configHelper->isDebugMode()) {
             $return .= '<style>.amazon-login-button, .amazon-pay-button, #amazon-pay-button-manual, #amazon-pay-button-product-info{display:none;}</style>';

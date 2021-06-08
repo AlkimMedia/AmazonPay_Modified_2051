@@ -66,8 +66,10 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
         $q  = "SELECT entry_postcode, entry_country_id FROM " . TABLE_ADDRESS_BOOK . " WHERE address_book_id = " . (int)$_SESSION['sendto'];
         $rs = xtc_db_query($q);
         if ($r = xtc_db_fetch_array($rs)) {
-            if ($_SESSION['amazon_pay_delivery_zip'] === $r['entry_postcode'] && $_SESSION['amazon_pay_delivery_country'] === $r['entry_country_id']) {
-                xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT));
+            if(isset($_SESSION['amazon_pay_delivery_zip']) && isset($_SESSION['amazon_pay_delivery_country'])){
+                if ($_SESSION['amazon_pay_delivery_zip'] === $r['entry_postcode'] && $_SESSION['amazon_pay_delivery_country'] === $r['entry_country_id']) {
+                    xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PAYMENT));
+                }
             }
         }
     }
