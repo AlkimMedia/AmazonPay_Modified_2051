@@ -20,6 +20,7 @@ $texts = [
     'APC_PUBLIC_KEY_ID_TITLE'=>'Public Key ID',
     'APC_PUBLIC_KEY_TITLE'=>'Mein Public Key',
     'APC_IPN_URL_TITLE'=>'URL f&uuml;r Amazon IPN',
+    'APC_CRON_STATUS_TITLE'=>'Cronjob aktivieren',
     'AMZ_JS_ORIGIN_TITLE'=>'Erlaubte Javascript Urspr&uuml;nge',
     'APC_IS_LIVE_TITLE'=>'Live/Sandbox',
     'APC_IS_DEBUG_TITLE'=>'Debug-Modus (Buttons verstecken)',

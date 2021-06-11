@@ -19,3 +19,5 @@ foreach(glob(__DIR__.'/classes/Struct/*.php') as $_file){
     require_once $_file;
 }
 
+(new \AlkimAmazonPay\InstallHelper())->checkVersion();
+

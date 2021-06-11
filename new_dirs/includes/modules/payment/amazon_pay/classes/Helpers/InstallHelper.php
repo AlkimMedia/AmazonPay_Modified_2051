@@ -65,4 +65,21 @@ class InstallHelper
         $configHelper = new ConfigHelper();
         $configHelper->resetKey();
     }
+
+    public function checkVersion(){
+        $configHelper = new ConfigHelper();
+
+        //only run after installation
+        if($configHelper->getConfigurationValue('MODULE_PAYMENT_AMAZON_PAY_STATUS') === null){
+            return;
+        }
+        if($configHelper->getConfigurationValue('APC_VERSION') !== $configHelper->getPluginVersion()){
+            $this->addConfiguration();
+            if($configHelper->getConfigurationValue('APC_VERSION') === null){
+                $configHelper->addConfigurationValue('APC_VERSION', $configHelper->getPluginVersion());
+            }else{
+                $configHelper->updateConfigurationValue('APC_VERSION', $configHelper->getPluginVersion());
+            }
+        }
+    }
 }
