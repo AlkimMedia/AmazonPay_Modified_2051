@@ -55,6 +55,15 @@ require (DIR_WS_INCLUDES.'head.php');
         #amz-config-table tr:nth-child(2n + 1) td{
             background:#f4f4f4;
         }
+        
+        .amzConfWr input, .amzConfWr select, .amzConfWr .SumoSelect{
+            width:90% !important;
+            box-sizing: border-box;
+        }
+
+        .amzConfWr input, .amzConfWr select{
+            padding:5px;
+        }
     </style>
 </head>
 <body>
