@@ -267,6 +267,6 @@ class ConfigHelper
     }
 
     public function getCustomInformationString(){
-        return 'Created by AlkimMedia, xtc3, V'.$this->getPluginVersion();
+        return 'Created by AlkimMedia, modified2, V'.$this->getPluginVersion();
     }
 }

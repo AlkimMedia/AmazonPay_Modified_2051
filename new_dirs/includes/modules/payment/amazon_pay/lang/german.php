@@ -1,3 +1,6 @@
+/**
+ * @package AlkimMediaAmazonPayCV2Global
+ */
 <?php
 
 $texts = [
