@@ -1,7 +1,7 @@
+<?php
 /**
  * @package AlkimMediaAmazonPayCV2Global
  */
-<?php
 
 namespace AlkimAmazonPay;
 

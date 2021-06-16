@@ -1,7 +1,7 @@
+<?php
 /**
  * @package AlkimMediaAmazonPayCV2Global
  */
- <?php
 chdir('../../');
 require_once 'includes/application_top.php';
 
