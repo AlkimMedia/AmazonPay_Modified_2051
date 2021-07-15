@@ -58,6 +58,20 @@ class InstallHelper
         ");
     }
 
+    protected function addLogTable(){
+        xtc_db_query("
+        CREATE TABLE IF NOT EXISTS `amazon_pay_log` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `time` datetime NOT NULL,
+          `msg` varchar(255) NOT NULL,
+          `ip` varchar(255) NOT NULL,
+          `data` LONGTEXT DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `ip` (`ip`) 
+        )
+        ");
+    }
+	
     public function process(){
         $this->addTable();;
         $this->addConfiguration();
@@ -78,6 +92,7 @@ class InstallHelper
         }
         if($configHelper->getConfigurationValue('APC_VERSION') !== $configHelper->getPluginVersion()){
             $this->addConfiguration();
+			$this->addLogTable();
             if($configHelper->getConfigurationValue('APC_VERSION') === null){
                 $configHelper->addConfigurationValue('APC_VERSION', $configHelper->getPluginVersion());
             }else{

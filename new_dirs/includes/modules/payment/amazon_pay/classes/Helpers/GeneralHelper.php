@@ -45,7 +45,13 @@ class GeneralHelper
             @chmod($path, 0777);
         }
 
-        file_put_contents($path, '['.date('Y-m-d H:i:s').'] '.str_pad($_SERVER['REMOTE_ADDR'], 18, ' ', STR_PAD_RIGHT).$msg.' '.serialize($data)."\n", 8);
+        file_put_contents($path, '['.date('Y-m-d H:i:s').'] '.str_pad($_SERVER['REMOTE_ADDR'], 18, ' ', STR_PAD_RIGHT).$msg."\n", 8);
+        xtc_db_perform('amazon_pay_log', [
+            'time'=>'now()',
+            'msg'=>$msg,
+            'ip'=>$_SERVER['REMOTE_ADDR'],
+            'data'=>serialize($data)
+        ]);
     }
 
 }
