@@ -12,7 +12,7 @@ var alkimAmazonPay = {
         var fields = form.querySelectorAll('input, select, textarea');
         for(var i = 0; i < fields.length; i++){
             var field = fields[i];
-            if(field.name && field.value) {
+            if(field.name && field.value && field.type != 'submit') {
                 params.push(encodeURIComponent(field.name) + '=' + encodeURIComponent(field.value));
             }
         }
