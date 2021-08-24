@@ -60,7 +60,10 @@ class amazon_pay
 
     function javascript_validation()
     {
-        return 'if (payment_value === "amazon_pay") { alkimAmazonPay.initCheckout(); return false; }';
+        return 'if (payment_value === "amazon_pay"'.
+                (DISPLAY_CONDITIONS_ON_CHECKOUT == 'true' && SIGN_CONDITIONS_ON_CHECKOUT == 'true'?' && document.getElementById("checkout_payment").conditions.checked':'').
+                (DISPLAY_PRIVACY_ON_CHECKOUT == 'true' && DISPLAY_PRIVACY_CHECK == 'true'?' && document.getElementById("checkout_payment").privacy.checked':'').
+                ') { alkimAmazonPay.initCheckout(); return false; }';
     }
 
     function selection()

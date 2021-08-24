@@ -25,6 +25,7 @@ if (strpos($PHP_SELF, 'checkout_payment.php') !== false) {
 
 if (strpos($PHP_SELF, 'checkout_confirmation.php') !== false && !empty($_SESSION['payment']) && $_SESSION['payment'] === $configHelper->getPaymentMethodName()) {
     $_POST['conditions'] = 1; //TODO
+    $_POST['privacy'] = 1; //TODO
 }
 
 if (strpos($PHP_SELF, 'checkout_process.php') !== false && !empty($_SESSION['payment']) && $_SESSION['payment'] === $configHelper->getPaymentMethodName()) {

@@ -34,6 +34,7 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
             'member_flag' => 0,
             'delete_user' => 1,
             'account_type' => 1,
+            'customers_date_added'=>'now()',
         ];
 
         xtc_db_perform(TABLE_CUSTOMERS, $sql_data_array);
