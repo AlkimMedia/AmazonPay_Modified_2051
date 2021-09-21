@@ -55,7 +55,18 @@ class ConfigHelper
 
     public function getLanguage()
     {
-        return 'de_DE';
+        $supportedLanguages = [
+            'en' => 'en_GB',
+            'de' => 'de_DE',
+            'fr' => 'fr_FR',
+            'it' => 'it_IT',
+            'es' => 'es_ES',
+        ];
+        if(isset($supportedLanguages[$_SESSION['language_code']])){
+            return $supportedLanguages[$_SESSION['language_code']];
+        }else{
+            return 'de_DE';
+        }
     }
 
     public function getCurrency()
@@ -159,6 +170,9 @@ class ConfigHelper
             ],
             'APC_ORDER_STATUS_SHIPPED'             => [
                 'type' => static::FIELD_TYPE_STATUS,
+            ],
+            'APC_ORDER_REFERENCE_IN_COMMENT'             => [
+                'type' => static::FIELD_TYPE_BOOL,
             ],
             'HEADING_STYLE'=>[
                 'type'  => static::FIELD_TYPE_HEADING,

@@ -122,12 +122,12 @@ class CheckoutHelper
 
         $loginSignature = $client->generateButtonSignature($loginPayload);
         $publicKeyId    = $this->configHelper->getPublicKeyId();
-
+        $useCreditUrl = xtc_href_link('callback/amazon_pay/use_credit.php', '', 'SSL');
         $return = <<<EOT
                 <script src="https://static-eu.payments-amazon.com/checkout.js"></script>
                 <script src="$jsPath"></script>
                 <script type="text/javascript" charset="utf-8">
-                
+                    const useCreditUrl = '$useCreditUrl';
                     try{
                         amazon.Pay.bindChangeAction('#amz-change-address', {
                             amazonCheckoutSessionId: '$checkoutSessionId',
@@ -236,11 +236,6 @@ class CheckoutHelper
                     }catch(e){
                         //console.warn(e);
                     }
-                    
-                    
-              
-                    
-                    
                 </script>
 EOT;
         if ($this->configHelper->isDebugMode()) {
@@ -255,6 +250,10 @@ EOT;
      */
     public function doUpdateCheckoutSessionBeforeCheckoutProcess($checkoutSession)
     {
+        if (!empty($_SESSION['amazon_pay_checkout_no_pay'])) {
+            unset($_SESSION['amazon_pay_checkout_no_pay']);
+            return;
+        }
         global $order, $order_totals, $shipping_modules, $order_total_modules;
         require_once DIR_WS_CLASSES . 'payment.php';
         require_once DIR_WS_CLASSES . 'shipping.php';
@@ -265,6 +264,10 @@ EOT;
         $order_total_modules = new order_total();
         $order_totals        = $order_total_modules->process();
 
+        if ($order->info['total'] <= 0) {
+            $_SESSION['amazon_pay_checkout_no_pay'] = 1;
+            xtc_redirect(xtc_href_link(FILENAME_CHECKOUT_PROCESS));
+        }
         $checkoutSessionUpdate = new CheckoutSession();
 
         $webCheckoutDetails = new WebCheckoutDetails();

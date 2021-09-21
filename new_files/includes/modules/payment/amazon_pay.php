@@ -135,6 +135,10 @@ class amazon_pay
             }
 
             $checkoutHelper->setOrderIdToChargePermission($checkoutSession->getChargePermissionId(), $insert_id);
+
+            if(defined('APC_ORDER_REFERENCE_IN_COMMENT') && APC_ORDER_REFERENCE_IN_COMMENT === 'True'){
+                xtc_db_query("UPDATE orders SET comments = CONCAT('".xtc_db_input(TEXT_AMAZON_PAY_ORDER_REFERENCE.": ".$checkoutSession->getChargePermissionId()."\n\n")."', comments) WHERE orders_id = ".(int)$insert_id);
+            }
         } catch (Exception $e) {
             $checkoutSession = $amazonPayHelper->getClient()->getCheckoutSession($_SESSION['amazon_checkout_session']);
             GeneralHelper::log('error', 'unexpected exception during checkout', [$e->getMessage(), $checkoutSession->toArray()]);

@@ -90,21 +90,13 @@
 <br class="clearfix" /> 
 
 {if $smarty.session.payment === 'amazon_pay'}
-    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-            <td class="main">&nbsp;</td>
-        </tr>
-        <tr>
-            <td class="main"><strong>{#text_comments#}</strong></td>
-        </tr>
-    </table>
-    <table width="100%" border="0" cellspacing="0" cellpadding="4">
-        <tr>
-            <td style="border: 1px solid; border-color: #cccccc;" class="main">
-                <textarea name="checkout_confirmation_comments_input" id="checkout-confirmation-comments-input">{$smarty.session.comments}</textarea>
-            </td>
-        </tr>
-    </table>
+    <div>
+        <h4 class="checkout">{#text_comments#}</h4>
+        <div>
+            <textarea name="checkout_confirmation_comments_input" id="checkout-confirmation-comments-input">{$smarty.session.comments}</textarea>
+        </div>
+        {amazonPayUseCredit}
+    </div>
 {else}
   {if $ORDER_COMMENTS != ''}
   <div class="twoColums">
