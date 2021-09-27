@@ -7,7 +7,7 @@ function smarty_function_amazonPayUseCredit(){
     $creditSelectionResult = $order_total_modules->credit_selection();
     $_SESSION['cot_gv'] = $oldValue;
     if($creditSelectionResult){
-        $return = '<div><label><input type="checkbox" name="amazon_pay_use_credit" value="1" '.(!empty($_SESSION['cot_gv'])?'checked':'').' /> '.TEXT_AMAZON_PAY_USE_CREDIT.'</label>';
+        $return = '<div><label><input type="checkbox" name="amazon_pay_use_credit" value="1" '.(!empty($_SESSION['cot_gv'])?'checked':'').' /> '.TEXT_AMAZON_PAY_USE_CREDIT.'</label></div>';
     }
     return $return;
 }
