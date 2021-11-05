@@ -6,6 +6,7 @@ use AlkimAmazonPay\CheckoutHelper;
 use AlkimAmazonPay\GeneralHelper;
 use AlkimAmazonPay\Helpers\TransactionHelper;
 use AlkimAmazonPay\InstallHelper;
+use AlkimAmazonPay\OrderHelper;
 use AmazonPayExtendedSdk\Struct\PaymentDetails;
 use AmazonPayExtendedSdk\Struct\Price;
 use AmazonPayExtendedSdk\Struct\StatusDetails;
@@ -129,8 +130,12 @@ class amazon_pay
             if ($checkoutSession->getChargeId()) {
                 $charge                     = $amazonPayHelper->getClient()->getCharge($checkoutSession->getChargeId());
                 $transaction = $transactionHelper->saveNewCharge($charge, $insert_id);
-                if ($transaction->status === StatusDetails::AUTHORIZED && APC_CAPTURE_MODE === 'after_auth') {
-                    $transactionHelper->capture($charge->getChargeId());
+                if ($transaction->status === StatusDetails::AUTHORIZED){
+                    $orderHelper = new OrderHelper();
+                    $orderHelper->setOrderStatusAuthorized($insert_id);
+                    if(APC_CAPTURE_MODE === 'after_auth') {
+                        $transactionHelper->capture($charge->getChargeId());
+                    }
                 }
             }
 
