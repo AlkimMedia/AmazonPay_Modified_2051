@@ -62,6 +62,7 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
 
     if ($needsMainAddress) {
         xtc_db_perform(TABLE_CUSTOMERS, ['customers_default_address_id' => $_SESSION['billto']], 'update', 'customers_id = ' . (int)$_SESSION['customer_id']);
+        $accountHelper->doLogin($_SESSION['customer_id']);
     }
 
     $_SESSION['payment'] = $configHelper->getPaymentMethodName();
