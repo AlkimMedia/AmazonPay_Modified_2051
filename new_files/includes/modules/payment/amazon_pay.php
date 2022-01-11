@@ -45,8 +45,8 @@ class amazon_pay
         $this->code        = __CLASS__;
         $this->title       = MODULE_PAYMENT_AMAZON_PAY_TEXT_TITLE;
         $this->description = MODULE_PAYMENT_AMAZON_PAY_TEXT_DESCRIPTION;
-        $this->sort_order  = MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER;
-        $this->enabled     = (MODULE_PAYMENT_AMAZON_PAY_STATUS == 'True');
+        $this->sort_order  = defined('MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER')?MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER:null;
+        $this->enabled     = defined('MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER')?(MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True'):false;
         $this->info        = MODULE_PAYMENT_AMAZON_PAY_TEXT_INFO;
         if (is_object($order)) {
             $this->update_status();
