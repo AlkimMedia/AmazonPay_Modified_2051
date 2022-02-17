@@ -1,5 +1,5 @@
 <?php
-if ($_SESSION['checkout_with_incomplete_account_started']) {
+if (!empty($_SESSION['checkout_with_incomplete_account_started'])) {
     if (!$_SESSION['customer_default_address_id']) {
         $q  = "SELECT * FROM " . TABLE_ADDRESS_BOOK . " WHERE customers_id = " . (int)$_SESSION['customer_id'] . " AND entry_street_address != '' AND entry_street_address IS NOT NULL";
         $rs = xtc_db_query($q);
