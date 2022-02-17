@@ -185,13 +185,7 @@ class AccountHelper
             $_SESSION['customer_country_id'] = $r['entry_country_id'];
             $_SESSION['customer_zone_id'] = $r['entry_zone_id'];
             $_SESSION['customer_email_address'] = $r['customers_email_address'];
-            $_SESSION['customer_time'] = $r['customers_password_time'];
             $_SESSION['customer_id'] = $customerId;
-
-            if ($_SESSION['customer_time'] == 0) {
-                $_SESSION['customer_time'] = time();
-                xtc_db_query("UPDATE ".TABLE_CUSTOMERS." SET customers_password_time = '".(int)$_SESSION['customer_time']."' WHERE customers_id = ".$customerId);
-            }
         }
     }
 }
