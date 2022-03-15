@@ -11,6 +11,9 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
     $checkoutSession                     = $checkoutHelper->getCheckoutSession($checkoutSessionId);
     $needsMainAddress                    = false;
     if (!$accountHelper->isLoggedIn()) {
+        if(!$checkoutSession->getBuyer()){
+            xtc_redirect(xtc_href_link(FILENAME_SHOPPING_CART, 'amazon_pay_error=1'));
+        }
         $name        = $checkoutSession->getBuyer()->getName();
         $t           = explode(' ', $name);
         $lastNameKey = max(array_keys($t));

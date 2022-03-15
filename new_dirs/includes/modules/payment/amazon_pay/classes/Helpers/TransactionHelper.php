@@ -49,18 +49,19 @@ class TransactionHelper
             $transaction->status = $charge->getStatusDetails()->getState();
             xtc_db_perform('amazon_pay_transactions', $transaction->toArray(), 'update', ' reference = \'' . xtc_db_input($charge->getChargeId()) . '\'');
 
-            $originalChargeTransaction = $this->getTransaction($charge->getChargeId());
-            if ($originalChargeTransaction->order_id) {
-                $orderHelper = new OrderHelper();
-                if ($transaction->status === StatusDetails::AUTHORIZED) {
-                    $orderHelper->setOrderStatusAuthorized($originalChargeTransaction->order_id);
-                    if (APC_CAPTURE_MODE === 'after_auth') {
-                        $this->capture($charge->getChargeId());
+            if($originalChargeTransaction = $this->getTransaction($charge->getChargeId())){
+                if ($originalChargeTransaction->order_id) {
+                    $orderHelper = new OrderHelper();
+                    if ($transaction->status === StatusDetails::AUTHORIZED) {
+                        $orderHelper->setOrderStatusAuthorized($originalChargeTransaction->order_id);
+                        if (APC_CAPTURE_MODE === 'after_auth') {
+                            $this->capture($charge->getChargeId());
+                        }
+                    } elseif ($transaction->status === StatusDetails::DECLINED) {
+                        $orderHelper->setOrderStatusDeclined($originalChargeTransaction->order_id);
+                    } elseif ($transaction->status === StatusDetails::CAPTURED) {
+                        $orderHelper->setOrderStatusCaptured($originalChargeTransaction->order_id);
                     }
-                } elseif ($transaction->status === StatusDetails::DECLINED) {
-                    $orderHelper->setOrderStatusDeclined($originalChargeTransaction->order_id);
-                } elseif ($transaction->status === StatusDetails::CAPTURED) {
-                    $orderHelper->setOrderStatusCaptured($originalChargeTransaction->order_id);
                 }
             }
             
