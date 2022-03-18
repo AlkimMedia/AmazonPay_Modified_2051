@@ -44,10 +44,11 @@ class amazon_pay
 
         $this->code        = __CLASS__;
         $this->title       = MODULE_PAYMENT_AMAZON_PAY_TEXT_TITLE;
-        $this->description = MODULE_PAYMENT_AMAZON_PAY_TEXT_DESCRIPTION;
+        $this->description = 'Version '.\AlkimAmazonPay\Config::PLUGIN_VERSION;
         $this->sort_order  = defined('MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER')?MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER:null;
-        $this->enabled     = defined('MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER')?(MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True'):false;
+        $this->enabled = defined('MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER') && MODULE_PAYMENT_AMAZON_PAY_STATUS === 'True';
         $this->info        = MODULE_PAYMENT_AMAZON_PAY_TEXT_INFO;
+
         if (is_object($order)) {
             $this->update_status();
         }
@@ -72,7 +73,7 @@ class amazon_pay
         return [
             'id'          => $this->code,
             'module'      => $this->title,
-            'description' => $this->info . '<div style="display:none;"><div id="amazon-pay-button-manual"></div></div>'
+            'description' => $this->info . '<div style="display:none;"><div id="amazon-pay-button-manual"></div></div>',
         ];
     }
 
@@ -84,7 +85,7 @@ class amazon_pay
     function confirmation()
     {
         return [
-            'title' => $this->description
+            'title' => $this->description,
         ];
     }
 
@@ -107,33 +108,36 @@ class amazon_pay
 
         //complete checkout session
         $amazonPayHelper = new AmazonPayHelper();
-        $checkoutHelper  = new CheckoutHelper();
+        $checkoutHelper = new CheckoutHelper();
         $transactionHelper = new TransactionHelper();
 
         $paymentDetails = new PaymentDetails();
-
-        $orderTotalRs = xtc_db_query("SELECT `value` FROM " . TABLE_ORDERS_TOTAL . " where orders_id = '" . (int)$insert_id . "' and class = 'ot_total'");
-        $orderTotal   = xtc_db_fetch_array($orderTotalRs);
-        $order        = new order($insert_id);
-
-        $paymentDetails->setChargeAmount(new Price(['amount' => round($orderTotal['value'], 2), 'currencyCode' => $order->info['currency']]));
-
         try {
+            $orderTotal = $this->getOrderTotal($insert_id);
+
+            if ($orderTotal <= 0) {
+                throw new Exception('order value must be greater than 0 (order #' . $insert_id . ')');
+            }
+            $order = new order($insert_id);
+
+            $paymentDetails->setChargeAmount(new Price(['amount' => round($orderTotal, 2), 'currencyCode' => $order->info['currency']]));
+
+
             $checkoutSession = $amazonPayHelper->getClient()->completeCheckoutSession($_SESSION['amazon_checkout_session'], $paymentDetails);
-            $transactionHelper->saveNewCheckoutSession($checkoutSession, $orderTotal['value'], $order->info['currency'], $insert_id);
+            $transactionHelper->saveNewCheckoutSession($checkoutSession, $orderTotal, $order->info['currency'], $insert_id);
 
             if ($checkoutSession->getChargePermissionId()) {
-                $chargePermission           = $amazonPayHelper->getClient()->getChargePermission($checkoutSession->getChargePermissionId());
+                $chargePermission = $amazonPayHelper->getClient()->getChargePermission($checkoutSession->getChargePermissionId());
                 $transactionHelper->saveNewChargePermission($chargePermission, $insert_id);
             }
 
             if ($checkoutSession->getChargeId()) {
-                $charge                     = $amazonPayHelper->getClient()->getCharge($checkoutSession->getChargeId());
+                $charge = $amazonPayHelper->getClient()->getCharge($checkoutSession->getChargeId());
                 $transaction = $transactionHelper->saveNewCharge($charge, $insert_id);
-                if ($transaction->status === StatusDetails::AUTHORIZED){
+                if ($transaction->status === StatusDetails::AUTHORIZED) {
                     $orderHelper = new OrderHelper();
                     $orderHelper->setOrderStatusAuthorized($insert_id);
-                    if(APC_CAPTURE_MODE === 'after_auth') {
+                    if (APC_CAPTURE_MODE === 'after_auth') {
                         $transactionHelper->capture($charge->getChargeId());
                     }
                 }
@@ -141,14 +145,39 @@ class amazon_pay
 
             $checkoutHelper->setOrderIdToChargePermission($checkoutSession->getChargePermissionId(), $insert_id);
 
-            if(defined('APC_ORDER_REFERENCE_IN_COMMENT') && APC_ORDER_REFERENCE_IN_COMMENT === 'True'){
-                xtc_db_query("UPDATE orders SET comments = CONCAT('".xtc_db_input(TEXT_AMAZON_PAY_ORDER_REFERENCE.": ".$checkoutSession->getChargePermissionId()."\n\n")."', comments) WHERE orders_id = ".(int)$insert_id);
+            if (defined('APC_ORDER_REFERENCE_IN_COMMENT') && APC_ORDER_REFERENCE_IN_COMMENT === 'True') {
+                xtc_db_query("UPDATE orders SET comments = CONCAT('" . xtc_db_input(TEXT_AMAZON_PAY_ORDER_REFERENCE . ": " . $checkoutSession->getChargePermissionId() . "\n\n") . "', comments) WHERE orders_id = " . (int)$insert_id);
             }
         } catch (Exception $e) {
             $checkoutSession = $amazonPayHelper->getClient()->getCheckoutSession($_SESSION['amazon_checkout_session']);
             GeneralHelper::log('error', 'unexpected exception during checkout', [$e->getMessage(), $checkoutSession->toArray()]);
             $checkoutHelper->defaultErrorHandling();
         }
+    }
+
+    function getOrderTotal($orderId)
+    {
+        $orderTotalRs = xtc_db_query("SELECT * FROM " . TABLE_ORDERS_TOTAL . " where orders_id = '" . (int)$orderId . "' and class IN ('ot_total', 'ot_gv')");
+        $totalValue = 0;
+        $otTotalSortOrder = 0;
+        $voucherValue = 0;
+        $otGvSortOrder = 0;
+
+        while ($orderTotal = xtc_db_fetch_array($orderTotalRs)) {
+            if ($orderTotal['class'] === 'ot_total') {
+                $otTotalSortOrder = (int)$orderTotal['sort_order'];
+                $totalValue += $orderTotal['value'];
+            }
+            if ($orderTotal['class'] === 'ot_gv') {
+                $otGvSortOrder = (int)$orderTotal['sort_order'];
+                $voucherValue = $orderTotal['value'];
+            }
+        }
+
+        if ($voucherValue > 0 && $otGvSortOrder > $otTotalSortOrder) {
+            $totalValue -= $voucherValue;
+        }
+        return $totalValue;
     }
 
     function get_error()
@@ -169,10 +198,10 @@ class amazon_pay
     function install()
     {
         $values = [
-            'MODULE_PAYMENT_AMAZON_PAY_STATUS'     => ['value' => 'False'],
-            'MODULE_PAYMENT_AMAZON_PAY_ALLOWED'    => ['value' => ''],
+            'MODULE_PAYMENT_AMAZON_PAY_STATUS' => ['value' => 'False'],
+            'MODULE_PAYMENT_AMAZON_PAY_ALLOWED' => ['value' => ''],
             'MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER' => ['value' => '0'],
-            'MODULE_PAYMENT_AMAZON_PAY_ZONE'       => ['value' => '']
+            'MODULE_PAYMENT_AMAZON_PAY_ZONE' => ['value' => ''],
         ];
 
         foreach ($values as $key => $data) {
@@ -201,7 +230,7 @@ class amazon_pay
             'MODULE_PAYMENT_AMAZON_PAY_STATUS',
             'MODULE_PAYMENT_AMAZON_PAY_ALLOWED',
             'MODULE_PAYMENT_AMAZON_PAY_SORT_ORDER',
-            'MODULE_PAYMENT_AMAZON_PAY_ZONE'
+            'MODULE_PAYMENT_AMAZON_PAY_ZONE',
         ];
     }
 }

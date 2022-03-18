@@ -27,14 +27,14 @@ class CheckoutHelper
     public function __construct()
     {
         $this->amazonPayHelper = new AmazonPayHelper();
-        $this->configHelper    = new ConfigHelper();
+        $this->configHelper = new ConfigHelper();
     }
 
     public function createCheckoutSession()
     {
         try {
 
-            $storeName    = (strlen(STORE_NAME) <= 50) ? STORE_NAME : (substr(STORE_NAME, 0, 47) . '...');
+            $storeName = (strlen(STORE_NAME) <= 50) ? STORE_NAME : (substr(STORE_NAME, 0, 47) . '...');
             $merchantData = new MerchantMetadata();
             $merchantData->setMerchantStoreName($storeName);
             $merchantData->setCustomInformation($this->configHelper->getCustomInformationString());
@@ -91,22 +91,36 @@ class CheckoutHelper
         );
     }
 
+    protected function getCachedSignature($payload)
+    {
+        $storageKey = 'apcv2_button_signature_' . md5(serialize([$this->configHelper->getMainConfig(), $payload]));
+        $cacheFile = DIR_FS_CATALOG . 'cache/' . $storageKey;
+        if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 28800) {
+            return file_get_contents($cacheFile);
+        }
+
+        $client = $this->amazonPayHelper->getClient();
+        $signature = $client->generateButtonSignature($payload);
+        file_put_contents($cacheFile, $signature);
+        return $signature;
+    }
+
     public function getJs($placement = 'Cart')
     {
         if (!$this->configHelper->isActive()) {
             return '';
         }
-        $merchantId               = $this->configHelper->getMerchantId();
+        $merchantId = $this->configHelper->getMerchantId();
         $createCheckoutSessionUrl = $this->configHelper->getCheckoutSessionAjaxUrl();
-        $isSandbox                = $this->configHelper->isSandbox() ? 'true' : 'false';
-        $language                 = $this->configHelper->getLanguage();
-        $currency                 = $this->configHelper->getCurrency();
-        $checkoutSessionId        = (!empty($_SESSION['amazon_checkout_session']) ? $_SESSION['amazon_checkout_session'] : '');
-        $jsPath                   = DIR_WS_CATALOG . 'includes/modules/payment/amazon_pay/js/amazon-pay.js';
-        $checkoutButtonColor      = APC_CHECKOUT_BUTTON_COLOR;
-        $loginButtonColor         = APC_LOGIN_BUTTON_COLOR;
+        $isSandbox = $this->configHelper->isSandbox() ? 'true' : 'false';
+        $language = $this->configHelper->getLanguage();
+        $ledgerCurrency = $this->configHelper->getLedgerCurrency();
+        $checkoutSessionId = (!empty($_SESSION['amazon_checkout_session']) ? $_SESSION['amazon_checkout_session'] : '');
+        $jsPath = DIR_WS_CATALOG . 'includes/modules/payment/amazon_pay/js/amazon-pay.js';
+        $checkoutButtonColor = APC_CHECKOUT_BUTTON_COLOR;
+        $loginButtonColor = APC_LOGIN_BUTTON_COLOR;
 
-        $client       = $this->amazonPayHelper->getClient();
+
         $loginPayload = json_encode([
             'signInReturnUrl' => xtc_href_link('amazon_pay_login.php'),
             'storeId' => $this->configHelper->getClientId(),
@@ -119,9 +133,8 @@ class CheckoutHelper
                 $productType = 'PayOnly';
             }
         }
-
-        $loginSignature = $client->generateButtonSignature($loginPayload);
-        $publicKeyId    = $this->configHelper->getPublicKeyId();
+        $loginSignature = $this->getCachedSignature($loginPayload);
+        $publicKeyId = $this->configHelper->getPublicKeyId();
         $useCreditUrl = xtc_href_link('callback/amazon_pay/use_credit.php', '', 'SSL');
         $return = <<<EOT
                 <script src="https://static-eu.payments-amazon.com/checkout.js"></script>
@@ -156,7 +169,7 @@ class CheckoutHelper
                                     url: '$createCheckoutSessionUrl'
                                 },
                                 sandbox: $isSandbox,
-                                ledgerCurrency: '$currency',
+                                ledgerCurrency: '$ledgerCurrency',
                                 checkoutLanguage: '$language',
                                 productType: '$productType',
                                 placement: '$placement',
@@ -171,7 +184,7 @@ class CheckoutHelper
                         var btn = amazon.Pay.renderButton('#amazon-pay-button-manual', {
                             merchantId: '$merchantId',
                             sandbox: $isSandbox,
-                            ledgerCurrency: '$currency',
+                            ledgerCurrency: '$ledgerCurrency',
                             checkoutLanguage: '$language',
                             productType: '$productType',
                             placement: '$placement',
@@ -192,7 +205,7 @@ class CheckoutHelper
                         var btn = amazon.Pay.renderButton('#amazon-pay-button-product-info', {
                             merchantId: '$merchantId',
                             sandbox: $isSandbox,
-                            ledgerCurrency: '$currency',
+                            ledgerCurrency: '$ledgerCurrency',
                             checkoutLanguage: '$language',
                             productType: '$productType',
                             placement: '$placement',
@@ -221,7 +234,7 @@ class CheckoutHelper
                             amazon.Pay.renderButton('#' + id, {
                                 merchantId: '$merchantId',
                                 sandbox: $isSandbox,
-                                ledgerCurrency: '$currency',
+                                ledgerCurrency: '$ledgerCurrency',
                                 checkoutLanguage: '$language',
                                 productType: 'SignIn',
                                 placement: '$placement',
@@ -262,7 +275,7 @@ EOT;
         $order = new order();
         require_once DIR_WS_CLASSES . 'order_total.php';
         $order_total_modules = new order_total();
-        $order_totals        = $order_total_modules->process();
+        $order_totals = $order_total_modules->process();
 
         if ($order->info['total'] <= 0) {
             $_SESSION['amazon_pay_checkout_no_pay'] = 1;
@@ -276,7 +289,7 @@ EOT;
         $paymentDetails = new PaymentDetails();
         $paymentDetails
             ->setPaymentIntent('Authorize')
-            ->setCanHandlePendingAuthorization(true)
+            ->setCanHandlePendingAuthorization($this->configHelper->canHandlePendingAuth())
             ->setChargeAmount(new Price(['amount' => $order->info['total'], 'currencyCode' => $order->info['currency']]));
 
         $checkoutSessionUpdate

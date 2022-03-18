@@ -42,7 +42,7 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
 
         xtc_db_perform(TABLE_CUSTOMERS, $sql_data_array);
         $_SESSION['customer_id'] = xtc_db_insert_id();
-		xtc_db_perform(TABLE_CUSTOMERS_INFO, [
+        xtc_db_perform(TABLE_CUSTOMERS_INFO, [
             'customers_info_id' => $_SESSION['customer_id'],
         ]);
         $needsMainAddress        = true;

@@ -130,7 +130,7 @@ require (DIR_WS_INCLUDES.'head.php');
                                             echo $fieldInfo['value'];
                                             break;
                                         case ConfigHelper::FIELD_TYPE_STATUS:
-                                            echo renderStatusSelectField($field, $fieldInfo['options']);
+                                            echo renderStatusSelectField($field, isset($fieldInfo['options'])?$fieldInfo['options']:null);
                                             break;
                                     }
                                     ?></td>
@@ -174,13 +174,7 @@ require (DIR_WS_INCLUDES.'head.php');
 </table>
 <!-- body_eof //-->
 <!-- footer //-->
-<?php
-if ($_GET["mode"] != 'excludeProducts') {
-    require(DIR_WS_INCLUDES . 'footer.php');
-} else {
-    echo '</div>';
-}
-?>
+</div>
 <!-- footer_eof //-->
 </body>
 </html>

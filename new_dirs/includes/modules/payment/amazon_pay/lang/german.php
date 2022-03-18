@@ -26,6 +26,7 @@ $texts = [
     'APC_CRON_STATUS_TITLE'=>'Cronjob aktivieren',
     'AMZ_JS_ORIGIN_TITLE'=>'Erlaubte Javascript Urspr&uuml;nge',
     'APC_IS_LIVE_TITLE'=>'Live/Sandbox',
+    'APC_REGION_TITLE' => 'Region',
     'APC_IS_DEBUG_TITLE'=>'Debug-Modus (Buttons verstecken)',
     'APC_CHECKOUT_BUTTON_COLOR_TITLE'=>'Farbe des Amazon-Checkout-Buttons',
     'APC_LOGIN_BUTTON_COLOR_TITLE'=>'Farbe des Amazon-Login-Buttons',
@@ -33,6 +34,7 @@ $texts = [
     'APC_ORDER_STATUS_DECLINED_TITLE'=>'Status f&uuml;r Bestellungen mit abgelehnter Zahlung',
     'APC_ORDER_STATUS_CAPTURED_TITLE'=>'Status f&uuml;r Bestellungen mit eingezogener Zahlung',
     'APC_CAPTURE_MODE_TITLE'=>'Art des Zahlungseinzugs',
+    'APC_AUTHORIZATION_MODE_TITLE' => 'Art der Autorisierung',
     'APC_ORDER_STATUS_SHIPPED_TITLE'=>'Status f&uuml;r versendete Bestellungen',
     'APC_ORDER_REFERENCE_IN_COMMENT_TITLE'=>'Amazon Pay Referenznummer in Bestellkommentar',
 

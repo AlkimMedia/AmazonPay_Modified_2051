@@ -23,7 +23,7 @@ class ConfigHelper
         return [
             'public_key_id' => APC_PUBLIC_KEY_ID,
             'private_key'   => $this->getPrivateKeyPath(),
-            'region'        => 'EU',
+            'region'        => APC_REGION,
             'sandbox'       => $this->isSandbox()
         ];
     }
@@ -69,11 +69,6 @@ class ConfigHelper
         }
     }
 
-    public function getCurrency()
-    {
-        return 'EUR';
-    }
-
     public function getPaymentMethodName()
     {
         return 'amazon_pay';
@@ -105,6 +100,13 @@ class ConfigHelper
         return [
             'HEADING_CREDENTIALS'=>[
                 'type'  => static::FIELD_TYPE_HEADING,
+            ],
+            'APC_REGION'                          => [
+                'type'    => static::FIELD_TYPE_SELECT,
+                'options' => [
+                    ['text' => 'EU', 'id' => 'EU'],
+                    ['text' => 'UK', 'id' => 'UK']
+                ]
             ],
             'APC_MERCHANT_ID'                      => [
                 'type' => static::FIELD_TYPE_STRING
@@ -159,6 +161,13 @@ class ConfigHelper
             ],
             'APC_ORDER_STATUS_CAPTURED'            => [
                 'type' => static::FIELD_TYPE_STATUS,
+            ],
+            'APC_AUTHORIZATION_MODE'                     => [
+                'type'    => static::FIELD_TYPE_SELECT,
+                'options' => [
+                    ['text' => 'nur autorisierte Bestellungen', 'id' => 'fast_auth'],
+                    ['text' => 'asynchrone Autorisierung erlauben', 'id' => 'async']
+                ]
             ],
             'APC_CAPTURE_MODE'                     => [
                 'type'    => static::FIELD_TYPE_SELECT,
@@ -281,6 +290,15 @@ class ConfigHelper
     }
 
     public function getCustomInformationString(){
-        return 'Created by AlkimMedia, modified2, V'.$this->getPluginVersion();
+        return 'Created by AlkimMedia, '.Config::PLATFORM_NAME.', V'.$this->getPluginVersion();
+    }
+
+    public function getLedgerCurrency()
+    {
+        return APC_REGION === 'UK' ? 'GBP' : 'EUR';
+    }
+
+    public function canHandlePendingAuth(){
+        return APC_AUTHORIZATION_MODE !== 'fast_auth';
     }
 }

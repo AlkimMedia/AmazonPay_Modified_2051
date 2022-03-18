@@ -18,7 +18,7 @@ const alkimAmazonPay = {
         xhr.onload = callback.bind(xhr);
         xhr.send(params.join('&'));
     }
-}
+};
 
 
 const commentsInput = document.getElementById('checkout-confirmation-comments-input');

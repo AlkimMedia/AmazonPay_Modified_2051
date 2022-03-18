@@ -79,7 +79,7 @@ if (!empty($_GET['amazon_pay_action'])) {
 
                 $charge = new \AmazonPayExtendedSdk\Struct\Charge();
                 $charge->setChargePermissionId($_GET['charge_permission_id'])
-                    ->setCanHandlePendingAuthorization(true)
+                    ->setCanHandlePendingAuthorization($configHelper->canHandlePendingAuth())
                     ->setChargeAmount($amount);
                 $charge = $apiClient->createCharge($charge);
                 $transactionHelper->saveNewCharge($charge, $chargePermissionTransaction->order_id);
