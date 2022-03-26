@@ -83,7 +83,7 @@
 <div class="twoColums{if $SHIPPING_METHOD} last{/if}">
   <div class="highlightbox {if $SHIPPING_METHOD}plainright{else}plainleft{/if}">
     <h4 class="checkout">{#text_payment_method#}{if isset($PAYMENT_EDIT)} <a class="midi" href="{'checkout_payment.php'|xtc_href_link:'_action=reset_payment':'SSL'}">{#text_edit#}</a>{/if}</h4>
-    {$PAYMENT_METHOD}
+    {if 'AMAZON_PAY_PAYMENT_DESCRIPTOR'|defined}{$smarty.const.AMAZON_PAY_PAYMENT_DESCRIPTOR}{else}{$PAYMENT_METHOD}{/if}
   </div>
 </div>
 {/if}

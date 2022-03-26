@@ -80,7 +80,7 @@
     <div class="checkoutNav2Boxes">
       <h2>{#text_payment_method#}</h2>
       <div class="text">&nbsp;{if isset($PAYMENT_EDIT)}<a href="{'checkout_payment.php'|xtc_href_link:'_action=reset_payment':'SSL'}">{#text_edit#}</a>{/if}</div>
-      <p style="clear:both;">{$PAYMENT_METHOD}</p>
+      <p style="clear:both;">{if 'AMAZON_PAY_PAYMENT_DESCRIPTOR'|defined}{$smarty.const.AMAZON_PAY_PAYMENT_DESCRIPTOR}{else}{$PAYMENT_METHOD}{/if}</p>
     </div>
   {/if}
   <div style="clear:both"></div>
