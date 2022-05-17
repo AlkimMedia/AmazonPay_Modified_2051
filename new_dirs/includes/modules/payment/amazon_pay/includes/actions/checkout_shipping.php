@@ -11,7 +11,7 @@ if (!empty($_GET['amazonCheckoutSessionId'])) {
     $checkoutSession                     = $checkoutHelper->getCheckoutSession($checkoutSessionId);
     $needsMainAddress                    = false;
     if (!$accountHelper->isLoggedIn()) {
-        if(!$checkoutSession->getBuyer()){
+        if(!$checkoutSession->getBuyer() || empty($checkoutSession->getBillingAddress())){
             xtc_redirect(xtc_href_link(FILENAME_SHOPPING_CART, 'amazon_pay_error=1'));
         }
         $name        = $checkoutSession->getBuyer()->getName();
