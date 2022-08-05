@@ -129,6 +129,15 @@ class amazon_pay
             if ($checkoutSession->getChargePermissionId()) {
                 $chargePermission = $amazonPayHelper->getClient()->getChargePermission($checkoutSession->getChargePermissionId());
                 $transactionHelper->saveNewChargePermission($chargePermission, $insert_id);
+                $phone = null;
+                if ($chargePermission->getShippingAddress() && $chargePermission->getShippingAddress()->getPhoneNumber()) {
+                    $phone = $chargePermission->getShippingAddress()->getPhoneNumber();
+                } elseif ($chargePermission->getBillingAddress() && $chargePermission->getBillingAddress()->getPhoneNumber()) {
+                    $phone = $chargePermission->getBillingAddress()->getPhoneNumber();
+                }
+                if ($phone) {
+                    xtc_db_perform(TABLE_ORDERS, ['customers_telephone' => $phone], 'update', 'orders_id = ' . (int)$insert_id);
+                }
             }
 
             if ($checkoutSession->getChargeId()) {
@@ -147,6 +156,13 @@ class amazon_pay
 
             if (defined('APC_ORDER_REFERENCE_IN_COMMENT') && APC_ORDER_REFERENCE_IN_COMMENT === 'True') {
                 xtc_db_query("UPDATE orders SET comments = CONCAT('" . xtc_db_input(TEXT_AMAZON_PAY_ORDER_REFERENCE . ": " . $checkoutSession->getChargePermissionId() . "\n\n") . "', comments) WHERE orders_id = " . (int)$insert_id);
+                xtc_db_query("UPDATE 
+                                orders_status_history 
+                              SET 
+                                comments = CONCAT('" . xtc_db_input(TEXT_AMAZON_PAY_ORDER_REFERENCE . ": " . $checkoutSession->getChargePermissionId() . "\n\n") . "', comments) 
+                              WHERE 
+                                orders_status_history_id = (SELECT 	orders_status_history_id FROM orders_status_history WHERE orders_id = " . (int)$insert_id . " ORDER BY orders_status_history_id LIMIT 1)");
+
             }
         } catch (Exception $e) {
             $checkoutSession = $amazonPayHelper->getClient()->getCheckoutSession($_SESSION['amazon_checkout_session']);
